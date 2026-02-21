@@ -1,89 +1,26 @@
 Horizontal Notes
 
-Running log of horizontal-level decisions discovered through vertical work. These will be committed to proper horizontal files once they stabilize.
+Status: All major decisions have been applied to horizontal files. Remaining items are open questions only.
 
 ⸻
 
-Architecture
+Applied Decisions (for reference)
 
-	•	Three layers: Product Principles (constrain, universal) → Domain Policy (constrain, domain-specific) → Domain Strategy (solve, domain-specific)
-	•	All layers read User Context + Domain Context
-	•	User Context is data, not rules — no "user policy" layer exists
-	•	Product defines which user information escalates from "inform" to "constrain" (e.g., medical attributes)
-
-⸻
-
-Tool Model
-
-	•	Two types: artifact tools (artifact-scoped, one per artifact) and state enablers (domain-scoped, no artifact)
-	•	Artifact tools produce exactly one artifact — the artifact defines the tool's shape
-	•	State enablers operate across all entities/concepts within the domain
-	•	Tool reuse across domains is a product-space concern, not a domain model concern
-	•	Tools have params — granularity handled via parameters, not tool proliferation (e.g., BuildMealPlan with single-meal mode, not a separate RecommendMeal tool)
-
-⸻
-
-Artifacts and Context
-
-	•	Artifacts can create side effects in the context layer (Goal → sets Configuration values + creates declared memories)
-	•	Goal (not Target) is the right name — it's a commitment, not a metric
-	•	Transition gravity belongs in Strategy, not in the domain model — the model defines what's possible, strategy defines what's emphasized
-
-⸻
-
-Memory Model
-
-	•	Two paths: declared (user states a truth → immediate memory) and observed (events → observations → stabilized memory)
-	•	Declared memories are the cold start primer — they populate context before any events exist
-	•	Configuration is pure operational parameters, not truths about the person
-	•	Items like food preferences, cooking habits are memories, not configuration
-
-⸻
-
-Policy vs Strategy
-
-	•	"Policy" is inherently constraining — it says what NOT to do
-	•	"Strategy" (provisional word) is the solving layer — it says what TO do
-	•	Domain Policy: safety rules, circumstance responses
-	•	Domain Strategy: intent activation, onboarding, artifact shaping, tool behavior, transition guidance
-
-⸻
-
-Strategy as Agent Methodology
-
-	•	Strategy is the domain expert's methodology — what a good nutritionist would do
-	•	The strategy document is a behavior specification for a domain agent: methodology, domain knowledge, decision-making approach
-	•	The expert's methodology maps to the state model: Assess=Learn, Direct=Plan, Guide=Do, Reflect=Analyze, Adapt=Analyze→Plan
-	•	Strategy gives the agent the expert's brain — this doesn't change per user
-	•	Policy constrains the agent's posture — how prescriptive, proactive, structured — this adapts to the user
-	•	Same brain, different posture. Brain = Strategy. Posture = Policy × User Context.
-
-⸻
-
-Agent vs Orchestration
-
-	•	Strategy IS the domain agent — the expert's methodology, knowledge, and decision-making approach
-	•	Everything else (domain model, policy, context, principles) is orchestration AROUND the agent
-	•	The agent WANTS ("this person needs a meal plan"). Orchestration ENABLES and CONSTRAINS (provides tools, enforces policy, supplies context).
-	•	Tool maps, artifact lifecycles, transition maps are orchestration concerns — the agent doesn't think in tool names
-	•	The design artifact (agent spec) and the implementation artifact (system prompt) are the same thing — design = implementation in an LLM system
-
-⸻
-
-Engagement Level
-
-	•	A real-world nutritionist presumes high commitment (paid, showed up). An LLM agent cannot.
-	•	Engagement level is a missing context signal — inferred from behavior (logging frequency, tool usage, session frequency)
-	•	It's an observation that stabilizes into a memory: "highly engaged," "occasionally engages," "browsing"
-	•	Policy reads engagement level to calibrate agent posture: browsing → knowledgeable friend; goal-setting → coach; committed with data → advisor
+	•	Architecture: Product Principles (constrain) → Domain Policy (govern) → Domain Expertise (solve) — applied to product-principles.md, README.md
+	•	Tool Model: two types (artifact + state enabler), params not proliferation, reuse is product-space — applied to domain-model.md, nutrition-model.md
+	•	Artifacts and Context: Goal (not Target), artifacts create context side effects — applied to domain-model.md, nutrition-model.md
+	•	Memory Model: declared + observed paths — applied to domain-context.md
+	•	Policy as Governance: governs expertise per known prior × expertise components — applied to domain-policy.md, nutrition-policy.md
+	•	Domain Expertise: 8 first-principles components, 3 tiers — applied to domain-expertise.md, nutrition-expertise.md
+	•	Engagement Level: observed trait, calibrates expertise posture — applied to user-context.md
+	•	Agent vs Orchestration: expertise IS the agent brain, orchestration is the system around it — reflected in architecture
 
 ⸻
 
 Open Questions
 
-	•	Better word than "Strategy" for the solving layer?
-	•	Circumstance creation policy: declared, inferred, or conversational?
+	•	Circumstance creation: declared, inferred, or conversational?
 	•	Memory expiry: do memories decay if contradicted by recent events?
-	•	Emotional safety: should dimensions of emotional harm be specified at product level?
 	•	Multi-user: does the product support shared contexts (e.g., family meal planning)?
-	•	Should domain-model.md also adopt the two-type tool model and the Goal concept?
+	•	Orchestration: does it need a design artifact, or is it purely implementation?
+	•	Transition gravity: to be discovered through strategy/expertise, not assumed

@@ -102,6 +102,13 @@ Examples
 
 Traits shape how governance configures intensity and feedback.
 
+Engagement level is a special trait — it is observed from behavior (logging frequency, tool usage, session frequency), not declared. It stabilizes over time:
+	•	Browsing — low commitment, exploratory
+	•	Goal-setting — moderate commitment, directional
+	•	Committed — high commitment, sustained engagement
+
+Domain expertise reads engagement level to calibrate posture: browsing → knowledgeable friend; goal-setting → coach; committed with data → advisor.
+
 ⸻
 
 5. Circumstances

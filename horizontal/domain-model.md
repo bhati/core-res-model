@@ -139,13 +139,15 @@ If entities are unclear, the domain feels incoherent.
 
 Artifacts are the structured forms that a domain demands exist.
 
-They are domain imperatives — persistent objects that give states meaning and make transitions possible. A MealPlan exists as a domain need before any tool creates it. A MealLogEntry is something the domain requires in order to function.
+They are domain imperatives — persistent objects that give states meaning and make transitions possible. A MealPlan exists as a domain need before any tool creates it. A MealLog is something the domain requires in order to function.
 
 They are:
 	•	Structured and persistent
 	•	Referencable objects within the domain
 	•	Inputs into future transitions
 	•	Evidence of movement across states
+
+Artifacts can create side effects in the context layer. A Goal artifact (a commitment) may set Configuration values and create declared memories.
 
 ⸻
 
@@ -167,11 +169,12 @@ They make behavior accumulative rather than ephemeral.
 
 Examples (Nutrition Domain)
 
-Artifact	Tool That Instantiates
-WeeklyPlan	Build weekly plan
-MealLogEntry	Log meal
-ReviewSummary	Review patterns
-Note / SavedReference	Save insight
+Artifact	Instantiated By	Type
+MealPlan	BuildMealPlan	Structured plan
+MealLog	LogMeal	Event record
+Goal	SetGoal	Commitment (creates context side effects)
+Review	ReviewPeriod	Snapshot
+ShoppingList	BuildShoppingList	Derived
 
 Artifacts persist beyond the immediate transition and can:
 	•	Be referenced in later planning
@@ -187,18 +190,17 @@ Tools are structured capabilities that instantiate artifacts and enable states a
 
 They are verbs made usable.
 
-Examples:
-	•	Log a meal
-	•	Build a weekly plan
-	•	Review patterns
-	•	Get a suggestion
+Two types:
 
-Tools:
-	•	Operate on entities
-	•	Instantiate artifacts
-	•	Enable states and transitions
+Artifact tools — artifact-scoped, one tool per artifact. The artifact defines the tool's shape. Each artifact tool produces exactly one artifact type.
+Examples: BuildMealPlan → MealPlan, LogMeal → MealLog, SetGoal → Goal.
 
-They are the product's agency layer.
+State enablers — domain-scoped, no artifact produced. They operate across all entities and concepts within the domain to enable a state.
+Examples: Explain (enables Learn state across all nutrition entities).
+
+Tool granularity is handled via parameters, not proliferation. BuildMealPlan with a single-meal parameter, not a separate RecommendMeal tool.
+
+Tool reuse across domains is a product-space concern, not a domain model concern.
 
 ⸻
 

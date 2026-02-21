@@ -10,21 +10,21 @@ Product Principles define the non-negotiable behavioral constraints of the produ
 
 ⸻
 
-2. Policy Architecture
+2. System Architecture
 
 Product Principles (constrain — universal)
     ↓
-Domain Policy (constrain — domain-specific)
+Domain Policy (govern — domain-specific)
     ↓
-Domain Strategy (solve — domain-specific)
+Domain Expertise (solve — domain-specific)
 
 All layers read User Context + Domain Context.
 
 Product Principles CONSTRAIN — universal behavioral boundaries.
-Domain Policy CONSTRAINS — domain-specific guardrails (safety, circumstance responses).
-Domain Strategy SOLVES — how the domain actively serves user intent (tool orchestration, artifact shaping, transition guidance).
+Domain Policy GOVERNS — shapes how expertise operates for known priors and foreseeable dangers.
+Domain Expertise SOLVES — the domain expert's methodology, knowledge, judgment, communication, empathy, evidence-based reasoning, boundaries, and adaptation.
 
-There is no separate “user policy” layer. User Context is data, not rules. Which user information escalates from “inform” to “constrain” is defined by Product Principles (e.g., medical safety).
+There is no separate "user policy" layer. User Context is data, not rules. Which user information escalates from "inform" to "constrain" is defined by Product Principles (e.g., medical safety).
 
 ⸻
 
@@ -89,7 +89,7 @@ How context is created, used, evolved, and expired.
 How the system stays internally consistent.
 
 	•	Transitions out of any state are context-dependent. No single loop is enforced.
-	•	Domain policies cannot violate product principles.
+	•	Domain policy and expertise cannot violate product principles.
 	•	Cross-domain context flows only through defined interfaces, not implicit assumptions.
 
 ⸻
@@ -124,4 +124,4 @@ How the system protects itself.
 
 12. One-Line Definition
 
-Product Principles are the universal behavioral constraints that ensure the product respects user agency, enforces safety, protects privacy, avoids burden, maintains coherence, defends its integrity, and grows with the user — leaving domain policies free to solve within those boundaries.
+Product Principles are the universal behavioral constraints that ensure the product respects user agency, enforces safety, protects privacy, avoids burden, maintains coherence, defends its integrity, and grows with the user — leaving domain expertise free to solve within those boundaries.
