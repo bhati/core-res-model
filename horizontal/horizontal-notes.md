@@ -49,6 +49,36 @@ Policy vs Strategy
 
 ⸻
 
+Strategy as Agent Methodology
+
+	•	Strategy is the domain expert's methodology — what a good nutritionist would do
+	•	The strategy document is a behavior specification for a domain agent: methodology, domain knowledge, decision-making approach
+	•	The expert's methodology maps to the state model: Assess=Learn, Direct=Plan, Guide=Do, Reflect=Analyze, Adapt=Analyze→Plan
+	•	Strategy gives the agent the expert's brain — this doesn't change per user
+	•	Policy constrains the agent's posture — how prescriptive, proactive, structured — this adapts to the user
+	•	Same brain, different posture. Brain = Strategy. Posture = Policy × User Context.
+
+⸻
+
+Agent vs Orchestration
+
+	•	Strategy IS the domain agent — the expert's methodology, knowledge, and decision-making approach
+	•	Everything else (domain model, policy, context, principles) is orchestration AROUND the agent
+	•	The agent WANTS ("this person needs a meal plan"). Orchestration ENABLES and CONSTRAINS (provides tools, enforces policy, supplies context).
+	•	Tool maps, artifact lifecycles, transition maps are orchestration concerns — the agent doesn't think in tool names
+	•	The design artifact (agent spec) and the implementation artifact (system prompt) are the same thing — design = implementation in an LLM system
+
+⸻
+
+Engagement Level
+
+	•	A real-world nutritionist presumes high commitment (paid, showed up). An LLM agent cannot.
+	•	Engagement level is a missing context signal — inferred from behavior (logging frequency, tool usage, session frequency)
+	•	It's an observation that stabilizes into a memory: "highly engaged," "occasionally engages," "browsing"
+	•	Policy reads engagement level to calibrate agent posture: browsing → knowledgeable friend; goal-setting → coach; committed with data → advisor
+
+⸻
+
 Open Questions
 
 	•	Better word than "Strategy" for the solving layer?
