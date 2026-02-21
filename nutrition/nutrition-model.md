@@ -26,22 +26,7 @@ Analyze — Observe outcomes, detect patterns, reflect on what worked.
 
 ⸻
 
-3. Transition Gravity
-
-The nutrition domain's natural loop is:
-
-Do → Analyze → Plan
-
-Primary transitions:
-	•	Do → Analyze — "I ate, now what happened?"
-	•	Analyze → Plan — "Given what I see, what should I change?"
-	•	Plan → Do — "I have a plan, now execute."
-
-Learn is available on-demand. It is not part of the primary loop but supports it — a user enters Learn when they need to understand something that Plan or Analyze surfaced.
-
-⸻
-
-4. Entities
+3. Entities
 
 Entities are the domain-specific nouns. In nutrition:
 
@@ -143,4 +128,4 @@ Tool reuse across domains is a product-space concern, not a domain model concern
 
 8. One-Line Definition
 
-The Nutrition Model defines Food, Meals, and Recipes as its entities, MealPlans, MealLogs, Goals, Reviews, ShoppingLists, and CookingPlans as the forms it demands, and a tool set of artifact instantiators and state enablers — all gravitating around a Do → Analyze → Plan loop.
+The Nutrition Model defines Food, Meals, and Recipes as its entities, MealPlans, MealLogs, Goals, Reviews, ShoppingLists, and CookingPlans as the forms it demands, and a tool set of artifact instantiators and state enablers.

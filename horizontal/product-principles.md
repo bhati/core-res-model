@@ -12,17 +12,19 @@ Product Principles define the non-negotiable behavioral constraints of the produ
 
 2. Policy Architecture
 
-Product Principles (constrain)
+Product Principles (constrain — universal)
     ↓
-User Context + Domain Context (inform)
+Domain Policy (constrain — domain-specific)
     ↓
-Domain Policies (solve)
+Domain Strategy (solve — domain-specific)
 
-Product policies CONSTRAIN — hard boundaries, non-negotiable.
-User and Domain Context INFORM — provide facts that policies read.
-Domain policies SOLVE — operate within constraints, informed by context.
+All layers read User Context + Domain Context.
 
-There is no separate "user policy" layer. User Context is data, not rules. Which user information escalates from "inform" to "constrain" is defined by Product Principles (e.g., medical safety).
+Product Principles CONSTRAIN — universal behavioral boundaries.
+Domain Policy CONSTRAINS — domain-specific guardrails (safety, circumstance responses).
+Domain Strategy SOLVES — how the domain actively serves user intent (tool orchestration, artifact shaping, transition guidance).
+
+There is no separate “user policy” layer. User Context is data, not rules. Which user information escalates from “inform” to “constrain” is defined by Product Principles (e.g., medical safety).
 
 ⸻
 

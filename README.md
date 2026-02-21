@@ -5,11 +5,13 @@ The foundational architecture for a behavioral product space.
 ## Architecture
 
 ```
-Product Principles (constrain)
+Product Principles (constrain — universal)
     ↓
-User Context + Domain Context (inform)
+Domain Policy (constrain — domain-specific)
     ↓
-Domain Policies (solve)
+Domain Strategy (solve — domain-specific)
+
+All layers read: User Context + Domain Context
 ```
 
 **Product Principles** define non-negotiable behavioral constraints — universal across all domains.
@@ -40,6 +42,8 @@ Domain Policies (solve)
 |---|---|
 | [nutrition-model.md](nutrition/nutrition-model.md) | 3 entities, 5 artifacts, 7 tools |
 | [nutrition-context.md](nutrition/nutrition-context.md) | Nutrition-specific events, config, observations, memories |
+| [nutrition-policy.md](nutrition/nutrition-policy.md) | Domain-specific constraints (safety, circumstances) |
+| [nutrition-strategy.md](nutrition/nutrition-strategy.md) | How nutrition solves for user intent |
 | [user-context-nutrition.md](nutrition/user-context-nutrition.md) | How User Context activates within nutrition + intent taxonomy |
 | [policy-scoping-notes.md](nutrition/policy-scoping-notes.md) | Scenario-based policy scoping notes |
 
