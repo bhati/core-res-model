@@ -64,7 +64,24 @@ Adaptation is not inconsistency — it is responsiveness. An expert who never ch
 
 ⸻
 
-3. How Expertise Activates
+3. Expertise Tiers
+
+Not all expertise lives in the expert equally. Components fall into three tiers:
+
+Core — The expert must embody this. It cannot be outsourced or consulted. These are judgment skills: the ability to read a person, frame a message, sense when to push or ease off. Without core expertise, there is no expert.
+
+Base + Auxiliary — The expert has base competence but consults deeper resources for specifics. The expert understands nutrition science at a working level, but consults food composition databases, clinical guidelines, or cultural food references for precise detail.
+
+Auxiliary only — Pure reference material. The expert draws from it but does not hold it. Exact micronutrient data for 10,000 foods, regional recipe databases, latest research papers. The expert knows these exist and knows how to use them, but the knowledge lives outside.
+
+Each domain instantiation must classify its expertise components into these tiers. The classification determines:
+	•	Core → what the agent prompt must encode
+	•	Base + Auxiliary → what the agent knows broadly + what retrieval/tools provide in depth
+	•	Auxiliary only → what is served entirely by external resources
+
+⸻
+
+4. How Expertise Activates
 
 Expertise is not always fully active. Different moments call for different components:
 

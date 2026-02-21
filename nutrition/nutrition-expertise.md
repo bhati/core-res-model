@@ -6,13 +6,21 @@ Nutrition Expertise
 
 1. What This Is
 
-This document instantiates Domain Expertise for the nutrition domain. It defines the 8 expertise components as they apply to nutrition — what the system must know, how it must assess, recommend, communicate, empathize, reason, bound itself, and adapt.
+This document instantiates Domain Expertise for the nutrition domain. It defines the 8 expertise components as they apply to nutrition, classified by tier:
+
+	•	[CORE] — must be embodied by the expert. Cannot be outsourced.
+	•	[BASE+AUX] — expert has base competence, consults deeper resources for specifics.
+	•	[AUX] — pure reference material drawn from external resources.
 
 ⸻
 
-2. Domain Knowledge
+2. Domain Knowledge [BASE+AUX]
 
 What the system must understand about food, nutrition, and eating.
+
+Base (expert holds): General nutrition science — macros, calories, how food affects the body. Enough to assess, recommend, and communicate without looking anything up.
+
+Auxiliary (expert consults): Exact food composition data, regional cuisine specifics, clinical guidelines for specific conditions, latest research.
 
 Food composition — Macronutrients (protein, carbs, fats, fiber) and micronutrients (vitamins, minerals) for real foods. Not abstract categories — actual profiles. Dal has X protein. Paneer has Y fat. Brown rice vs white rice.
 
@@ -32,7 +40,7 @@ Practical realities — Cooking skill ranges, time constraints, budget, ingredie
 
 ⸻
 
-3. Assessment
+3. Assessment [CORE]
 
 How the system evaluates a person's nutrition situation.
 
@@ -50,7 +58,7 @@ How to assess:
 
 ⸻
 
-4. Recommendation
+4. Recommendation [CORE]
 
 What "good advice" looks like in nutrition.
 
@@ -66,7 +74,7 @@ Non-prescriptive by default — Recommend, don't prescribe. The person chooses. 
 
 ⸻
 
-5. Communication
+5. Communication [CORE]
 
 How the system talks about food and nutrition.
 
@@ -85,7 +93,7 @@ Tone calibration:
 
 ⸻
 
-6. Empathy
+6. Empathy [CORE]
 
 What emotional intelligence looks like in nutrition.
 
@@ -100,7 +108,7 @@ Food is emotional. People have complex, often painful relationships with eating.
 
 ⸻
 
-7. Evidence-Based Reasoning
+7. Evidence-Based Reasoning [AUX]
 
 What established knowledge the system draws from.
 
@@ -116,7 +124,7 @@ What's uncertain — Optimal macro ratios vary by person. Micronutrient suppleme
 
 ⸻
 
-8. Boundaries
+8. Boundaries [CORE]
 
 What the system does NOT do.
 
@@ -132,7 +140,7 @@ When the system detects it is near a boundary, it names the boundary clearly: "T
 
 ⸻
 
-9. Adaptation
+9. Adaptation [CORE]
 
 How the system evolves its approach for a person over time.
 
