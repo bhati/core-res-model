@@ -180,20 +180,23 @@ They are:
 	•	Interpretive
 	•	Behavior-shaping
 
-Memories arise from:
-	•	Repeated observations
-	•	Explicit user confirmation
-	•	Stable configuration shifts
+Memories arrive via two paths:
+
+Declared memories — the user states a truth directly. “I avoid eggs.” “I don’t cook on weekdays.” These go straight into memories with no observation period. The user is the evidence. Declared memories are the primary cold start mechanism — they populate the context space before any events exist.
+
+Observed memories — the system derives a truth through the lifecycle. Events accumulate → observations form → repeated observations stabilize into memories. These require evidence and time.
+
+Both are memories. Both are durable. Both shape policy. They differ only in how they arrive.
 
 ⸻
 
 Examples (Nutrition Domain)
-	•	"Avoids eggs."
-	•	"Prefers high-protein breakfast."
-	•	"Does best with fixed meal timing."
-	•	"Heavy lunches usually stabilize my energy."
-	•	"Spicy dinners often cause discomfort."
-	•	"I skip breakfast when stressed."
+	•	“Avoids eggs.”
+	•	“Prefers high-protein breakfast.”
+	•	“Does best with fixed meal timing.”
+	•	“Heavy lunches usually stabilize my energy.”
+	•	“Spicy dinners often cause discomfort.”
+	•	“I skip breakfast when stressed.”
 
 ⸻
 
@@ -203,7 +206,7 @@ Memories influence:
 	•	Planning structure
 	•	Reflection framing
 	•	Tool usage
-	•	Transition shaping (via governance)
+	•	Transition shaping (via policy)
 
 They personalize the domain without relying on cross-domain user identity.
 
@@ -211,18 +214,17 @@ They personalize the domain without relying on cross-domain user identity.
 
 7. Context Composition
 
-Within a domain, context evolves as follows:
+Within a domain, context evolves through two paths:
 
-Events
-→ Observations
-→ Memories
+Observed path:
+Events → Observations → Memories
 
-Configuration operates alongside this progression as declared context.
+Declared path:
+User states a truth → Memories (directly)
 
-Events are composed into observations.
-Observations are stabilized into memories.
+Configuration operates alongside both paths as operational parameters.
 
-The result is the domain's accumulated understanding — the context that governance reads.
+The result is the domain’s accumulated understanding — the context that policy reads.
 
 ⸻
 

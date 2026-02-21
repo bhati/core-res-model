@@ -51,7 +51,10 @@ Examples: chicken breast, brown rice, almond milk, banana.
 Meal — A structured eating occasion composed of foods.
 Examples: breakfast (oats + banana + coffee), lunch (rice + dal + salad).
 
-These are the atomic nouns of the nutrition domain. All tools, artifacts, and context are ultimately about Food and Meals.
+Recipe — A structured preparation method that transforms foods into a meal.
+Examples: dal tadka, chicken stir-fry, overnight oats.
+
+These are the atomic nouns of the nutrition domain. All tools, artifacts, and context are ultimately about Food, Meals, and Recipes.
 
 ⸻
 
@@ -63,53 +66,81 @@ MealPlan — A temporal arrangement of intended meals. The domain cannot functio
 
 MealLog — A record of what was actually eaten. The domain cannot function in Analyze without this. It captures the lived reality of eating.
 
-Target — A quantitative or qualitative nutrition goal. Gives Plan direction and Analyze a benchmark.
-Examples: "1800 kcal/day," "130g protein," "eat more vegetables," "no snacking after 9pm."
+Goal — A commitment the user makes within the domain. Gives Plan direction and Analyze a benchmark. Goals are artifacts that create effects in the context layer — a Goal of "1800 kcal/day" sets calorie_target in Configuration; a Goal of "eat more vegetables" becomes a declared memory.
+Examples: "Lose weight at 1800 kcal/day," "130g protein daily," "eat more vegetables," "no snacking after 9pm."
 
 Review — A structured analysis output. Gives Analyze its tangible form — without it, reflection is ephemeral.
 Examples: weekly intake summary, plan vs actual comparison, pattern statement.
+
+ShoppingList — A derived list of what to acquire. Bridges MealPlan to real-world execution.
+
+CookingPlan — A preparation strategy that defines how to execute a MealPlan. Batch cooking schedules, prep steps, assembly instructions.
 
 ⸻
 
 Artifact → Tool Mapping
 
 Artifact	Instantiated By
-MealPlan	BuildPlan
+MealPlan	BuildMealPlan
 MealLog	LogMeal
-Target	SetTarget
+Goal	SetGoal
 Review	ReviewPeriod, DetectPatterns
+ShoppingList	BuildShoppingList
+CookingPlan	BuildCookingPlan
 
 ⸻
 
 6. Tools
 
-Tools instantiate artifacts and enable states and transitions.
+Tools are either artifact tools (artifact-scoped, one per artifact) or state enablers (domain-scoped, no artifact produced).
 
-BuildPlan — Create or modify a meal plan.
-Acts on: Food, Meal entities.
+Artifact Tools:
+
+BuildMealPlan — Create or modify a meal plan.
+Acts on: Food, Meal, Recipe entities.
 Produces: MealPlan artifact.
+Params: period (day/week), single meal mode (in-moment recommendation).
+
+BuildShoppingList — Generate a shopping list from a meal plan.
+Reads: MealPlan artifact.
+Produces: ShoppingList artifact.
+
+BuildCookingPlan — Generate a preparation strategy from a meal plan.
+Reads: MealPlan, Recipe entities.
+Produces: CookingPlan artifact.
 
 LogMeal — Record what was eaten.
 Acts on: Food, Meal entities.
 Produces: MealLog artifact.
 
-SetTarget — Define or adjust a nutrition target.
-Produces: Target artifact.
+SetGoal — Define or adjust a nutrition goal.
+Produces: Goal artifact.
+Side effect: creates or updates Configuration and declared memories in the context layer.
 
 ReviewPeriod — Summarize intake over a time range.
-Reads: MealLog, Target artifacts.
+Reads: MealLog, Goal artifacts.
 Produces: Review artifact.
 
 DetectPatterns — Surface recurring behaviors or correlations.
 Reads: MealLog artifacts.
 Produces: Review artifact.
 
+State Enablers:
+
 Explain — Answer a nutrition question with context.
-Acts on: Food entities, domain knowledge.
+Domain-scoped: operates across all entities and concepts within nutrition.
 No artifact produced — enables Learn state.
 
 ⸻
 
-7. One-Line Definition
+7. Tool Type Principle
 
-The Nutrition Model defines Food and Meals as its entities, MealPlans, MealLogs, Targets, and Reviews as the forms it demands, and a tool set that instantiates those forms — all gravitating around a Do → Analyze → Plan loop.
+Artifact tools are artifact-scoped — one tool per artifact. The artifact defines the tool's shape.
+State enablers are domain-scoped — they operate across entities within the domain.
+Tool reuse across domains is a product-space concern, not a domain model concern.
+
+⸻
+
+8. One-Line Definition
+
+The Nutrition Model defines Food, Meals, and Recipes as its entities, MealPlans, MealLogs, Goals, Reviews, ShoppingLists, and CookingPlans as the forms it demands, and a tool set of artifact instantiators and state enablers — all gravitating around a Do → Analyze → Plan loop.
