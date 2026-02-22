@@ -44,3 +44,32 @@ Goal revision: when revised, config effects cascade. Active MealPlan flagged for
 Memories: Goal statement echoes as a cross-domain memory in user context ("user wants to manage diabetes and lose weight"). Readable by other domains.
 
 Intents: Goal creates intents as side effects. Within domain, Goal → domain intent. Across domains, visible as cross-domain context. Intents use the same primary/secondary tag structure.
+
+⸻
+
+Validation Gate
+
+Every goal passes through a three-tier validation before activation. LLM evaluates the proposed goal against user's FactAttributes, active priors, and platform policy.
+
+Severity levels:
+
+Pass — goal is safe and reasonable. Proceed.
+Warn — goal has concerns but isn't dangerous. User can override after acknowledging the concern. System logs the acknowledgment.
+Block — goal violates hard safety policy. System redirects to alternatives. No override.
+
+Validation rules:
+
+| Trigger | Severity | Reason |
+|---|---|---|
+| Calorie target < 1200 without medical clearance | Block | Below safe intake for any adult |
+| Weight loss goal + pregnant/breastfeeding | Block | Deficit unsafe during pregnancy |
+| High protein target + kidney disease | Block | Renal risk — protein restriction required |
+| Restriction language + eating disorder history | Block | May trigger disordered patterns |
+| Caloric deficit > 500 kcal/day | Warn | Sustainability concern — hard to maintain |
+| Multiple simultaneous targets (4+) | Warn | Complexity risk — suggest simplifying |
+| Ambitious timeline ("lose 10kg in a month") | Warn | Unrealistic — system suggests adjustment |
+| Carb elimination + Type 1 diabetes | Block | Hypoglycemia risk |
+| Goal contradicts current medical prior | Block | Medical safety — refer to provider |
+
+Rules are evaluated by the LLM using policy + FactAttributes. Not a static rule engine — the LLM applies judgment for edge cases (e.g., is "no carbs" truly zero or just low-carb intent?).
+
