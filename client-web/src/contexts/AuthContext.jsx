@@ -8,8 +8,16 @@ export function AuthProvider({ children }) {
     const [loading, setLoading] = useState(true)
 
     useEffect(() => {
-        supabase.auth.getSession().then(({ data: { session } }) => {
-            setSession(session)
+        supabase.auth.getSession().then(async ({ data: { session } }) => {
+            if (!session) {
+                // No existing session — sign in anonymously
+                const { data, error } = await supabase.auth.signInAnonymously()
+                if (!error) {
+                    setSession(data.session)
+                }
+            } else {
+                setSession(session)
+            }
             setLoading(false)
         })
 
