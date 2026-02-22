@@ -37,13 +37,13 @@ Hard — needs deep focus
 Medium — known patterns, needs product decisions
 
 3. Proactivity channel (Q4-5)
-   WHAT to surface WHEN is partially addressed by HP03 (surface-scoped). HOW (push notification, in-app card, scheduled digest) remains a product design decision.
+   WHAT to surface WHEN is partially addressed by HP03 (surface-scoped). HOW is now answered: Where You Left Off surface shows event-driven cards. Push notifications remain a product decision.
 
 4. Artifact lifecycle in UX (Q11)
-   Versioning, superseding, history — what the user sees. Interaction design.
+   Partially answered: MealPlan has lifecycle (suggestion → soft → committed → superseded). NutritionGoal has lifecycle (active → revised → retired). Day View shows artifact state via indicators. Full versioning UX still TBD.
 
-5. Do states manifest visibly in UX? (Q3)
-   Are Learn/Plan/Do/Analyze visible modes or invisible inference? Interaction design.
+5. Do states manifest visibly in UX? (Q3) — RESOLVED
+   No. States (Learn/Plan/Do/Analyze) are invisible design scaffolding. Navigation is 4 tabs: Where You Left Off, Timeline, Browse, You. States dissolve into UX context signals per engineering-blocks.md Gap 1.
 
 ⸻
 
@@ -62,4 +62,20 @@ Paint by Numbers — standard engineering
    REST or GraphQL between frontend and backend. Standard.
 
 10. Policy transparency (Q19)
-    Partially informed by HP01 (LLM can explain on a surface). Template patterns for known policy triggers.
+    Partially answered: HP05b validation gate makes policy visible during goal-setting. Block messages explain why. General-purpose policy explanation still TBD.
+
+⸻
+
+New Questions from Journey Work
+
+11. Chat placement
+    Where does freeform conversation live? Options: floating button, WYLO card, HP05a mode, fifth tab. Not decided.
+
+12. Events architecture
+    MealPlan listens to events for adaptation. WYLO assembles cards from events. No formal event spec exists — what events, who emits, who listens.
+
+13. WYLO priority model
+    How does the system decide which containers to show and in what order? Priority logic undefined.
+
+14. Zoom slider vs segmented tabs
+    Timeline zoom (Y-M-W-D-+Add) — slider is conceptually elegant but may be difficult as a touch target. Needs UX testing.

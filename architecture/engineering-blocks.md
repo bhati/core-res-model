@@ -39,12 +39,12 @@ Prompt construction, output schemas, validation rules, latency management, cost 
 Difficulty: Needs design work. Core engineering challenge.
 
 Client App
-Presentation and interaction. Hard shells with LLM-filled content (HP01). Interaction design fully TBD.
-Difficulty: Needs design work.
+Presentation and interaction. Hard shells with LLM-filled content (HP01). Four top-level surfaces: Where You Left Off (dynamic resume), Timeline (Day View with zoom: Y-M-W-D), Browse (entity navigation), You (identity + config). HP05a composition surface for prose-to-structure interactions. Zoom model across time scales.
+Difficulty: Defined at product level. Engineering implementation needed.
 
 Workflow Coordination
-Deterministic paths for tool execution (BuildMealPlan, LogMeal, SetGoal, etc.) with LLM judgment injected at decision points. Side effect handling (Goal → config + memories). Flow management.
-Difficulty: Needs design — step-by-step tool workflows not yet defined.
+Deterministic paths for tool execution (BuildMealPlan, LogMeal, SetGoal, etc.) with LLM judgment injected at decision points. Side effect handling (Goal → config + memories). Flow management. Composition calls are multi-turn with structured output per turn; code enforces completion boundaries (turn limits, required-field rules). Validation gate (HP05b) applies to consequential artifacts.
+Difficulty: Defined at design level. LLM composition call contract specified in HP05a.
 
 Orchestration
 Catch-all. Coordinates the cycle — what triggers what, in what order. User actions, system events, scheduled jobs. Glue between all other blocks.
@@ -54,14 +54,14 @@ Catch-all. Coordinates the cycle — what triggers what, in what order. User act
 3. Coverage Map — Domain Files → Engineering Blocks
 
 nutrition-model.md
-- Entities (Food, Meal, Recipe) → Data Modeling ✓
-- Artifacts (MealPlan, MealLog, Goal, Review, ShoppingList, CookingPlan) → Data Modeling ✓
+- Entities (Food, Recipe) → Data Modeling ✓ (Meal dissolved into MealPlan/MealLog items)
+- Artifacts (MealPlan, MealLog, NutritionGoal, NutritionReview, ShoppingList, CookingPlan) → Data Modeling ✓
 - Tools (BuildMealPlan, LogMeal, SetGoal, etc.) → Workflow Coordination ✓
 - Goal side effects (sets config + memories) → Workflow Coordination ✓
 
 nutrition-context.md
-- Events (10 types) → Event Processing ✓
-- Configuration (7 params) → Data Modeling ✓
+- Events (10 types) → Event Processing ✓ (MealPlan now listens to events for adaptation)
+- Configuration → Data Modeling ✓ (now domain-scoped FactAttributes)
 - Observations (quantitative, pattern, deviation) → Event Processing + LLM Pipeline ✓
 - Memories (declared + observed) → Data Modeling ✓
 - Context composition (observed + declared paths) → LLM Pipeline ✓
