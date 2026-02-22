@@ -1,6 +1,6 @@
 Work State
 
-Last updated: 2026-02-22
+Last updated: 2026-02-22 15:39
 
 ⸻
 
@@ -75,7 +75,7 @@ Still open:
 5. Known Concerns by Journey
 
 Log a Meal:
-  LC1. Cold start — no plan + no history = worst first experience
+  LC1. Cold start — parked (product design, not architecture)
   LC2. Batch prose — multi-meal parsing from one input underspecified
   LC3. Navigation cost of [✎] — 3 edits = 3 round trips
   LC4. Refinement overkill — simple quantity edit shouldn't need full HP05a
@@ -88,8 +88,8 @@ Set a Goal:
   GC4. Validation tone — firm but not preachy
 
 Build a Plan:
-  PC1. Token cost of rolling suggestions — throttling for free-tier?
-  PC2. Cold start suggestion quality — generic without patterns
+  PC1. Token cost of rolling suggestions — business decision, not architecture
+  PC2. Cold start suggestion quality — parked with LC1
   PC3. Week view complexity — 21+ slots on mobile
   PC4. Adaptation vs stability — small deviations shouldn't trigger changes
   PC5. Suggestion explainability — "why paneer tikka?"
@@ -118,8 +118,8 @@ Build a Plan:
 
 8. HP04 TBDs
 
-  HP4a. Extraction validation, confirmation flows, confidence thresholds — now partially addressed by HP05a composition call pattern
-  HP4b. Re-scoping mid-conversation, escalation to broader context — not addressed
+  HP4a. Extraction validation, confirmation flows, confidence thresholds — RESOLVED by HP05a composition call pattern
+  HP4b. Re-scoping mid-conversation — permanent managed tension, not solvable as a design decision
 
 ⸻
 
@@ -129,10 +129,17 @@ Summary Counts
   Architecture questions    13         5                8
   Navigation questions       6         2                4
   Day View questions        20       ~10              ~10
-  Journey concerns          14         1               13
+  Journey concerns          14         4               10
   Product principles         4         0                4
   Nutrition domain           6         0                6
-  HP04 TBDs                  2         1                1
+  HP04 TBDs                  2         2                0
   Stale files                3         0                3
   ─────────────────────────────────────────────────────────
-  Total                     68       ~19              ~49
+  Total                     68       ~23              ~45
+
+Big hairy questions status:
+  1. Meal slot model       — RESOLVED: 3-slot default, 7 predefined, custom
+  2. Cold start            — PARKED: product design, not architecture
+  3. Notes classification  — RESOLVED: presentation choice, system treats as open chat
+  4. Token economics       — PARKED: business decision
+  5. Scope mismatch (HP04b)— ACCEPTED: permanent managed tension
