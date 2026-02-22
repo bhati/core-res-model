@@ -68,3 +68,4 @@ Presentation and interaction preferences.
 | tone | Enum (direct/gentle/balanced) | balanced | Stable | User + LLM |
 | planning_rigidity | Enum (precise/moderate/loose) | moderate | Stable | User + LLM |
 | autonomy_vs_guidance | Enum | balanced | Stable | User + LLM |
+| tracking_granularity | Enum (exact/approximate) | approximate | Stable | User + LLM |

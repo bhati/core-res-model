@@ -4,27 +4,22 @@ Domain Context
 
 Configuration
 
-Nutrition-specific operational parameters. Some set at onboarding, most set by Goal side effects.
-
-Field schema: each field has required (boolean), entropy, and who_writes.
+Nutrition-specific constraints. Only fields that are genuinely unique to the nutrition domain and can't live anywhere else. Everything else lives on Goal (targets), as a Memory (preferences), or as User Configuration (presentation).
 
 | Field | Value Type | Required | Entropy | Who Writes |
 |---|---|---|---|---|
 | dietary_exclusions | Enum[] | Yes | Stable | User only |
 | allergy_exclusions | Enum[] | Yes | Stable | User only |
-| calorie_target | Numeric | Yes | Changes on goal revision | Goal (LLM-derived) |
-| macro_split | Object { protein_pct, carb_pct, fat_pct } | No | Changes on goal revision | Goal (LLM-derived) |
-| meal_count | Numeric (1-6) | No | Stable | User + LLM |
-| fasting_window | String (e.g., "16:8") | No | Stable | User only |
-| tracking_granularity | Enum (exact/approximate) | No | Stable | User + LLM |
 
 dietary_exclusions vocabulary: no_meat, no_beef, no_pork, no_fish, no_eggs, no_dairy, no_gluten, no_onion_garlic (jain).
 allergy_exclusions vocabulary: peanuts, tree_nuts, shellfish, dairy, eggs, soy, wheat, fish, sesame, mustard, celery, lupin, mollusks, sulfites (FDA/EU Big 14).
 
-Who writes:
-- User only: system never sets or overrides.
-- Goal (LLM-derived): side effect of Goal creation. LLM computes from user attributes + goal statement.
-- User + LLM: user declares, LLM may suggest changes.
+Both are safety-critical. Plans and suggestions must never violate these.
+
+Calorie targets, macro splits → Goal.targets.
+Fasting window → Memory (constraint strength).
+Meal structure → MealPlan builder decides from context.
+Tracking granularity → User Configuration (presentation).
 
 ⸻
 
@@ -35,7 +30,7 @@ Durable domain-scoped truths. The system's "notebook" about the user within nutr
 - id
 - user_id
 - domain (nutrition)
-- content (prose: "avoids eggs even though not allergic", "prefers high-protein breakfast", "cooks only on weekends")
+- content (prose: "avoids eggs even though not allergic", "prefers high-protein breakfast", "does 16:8 intermittent fasting")
 - strength (constraint / preference / observation)
   - constraint: hard rule, affects plan safety
   - preference: soft signal, improves plan quality
