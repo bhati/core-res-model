@@ -30,11 +30,12 @@ Who writes:
 
 Traits
 
-Behavioral and personality patterns. Accumulated over time.
+Behavioral, personality, and cultural patterns. Accumulated over time.
 
 - user_id
 - traits: [{ content, source (declared / observed), confidence }]
 - engagement_level (browsing / goal_setting / committed) — computed metric (HP02)
+- geocultural_notes (prose — cross-domain context about geography, culture, festivals, household. e.g., "Lives in Bangalore. Punjabi household. Observes Navratri fasting. Family of 4." Mutation model: same as domain memories — LLM merges old + change into new prose.)
 
 ⸻
 
