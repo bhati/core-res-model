@@ -1,182 +1,205 @@
 Services Architecture
 
-Mapping engineering blocks to backend services.
+Tech stack decisions applied to backend services.
 
 ⸻
 
-Service Inventory
+Tech Stack
 
-  ┌──────────┐     ┌──────────────┐     ┌─────────────┐
-  │  Client  │────▶│  API Gateway │────▶│ Orchestrator │
-  └──────────┘     └──────────────┘     └──────┬──────┘
-                                               │
-                        ┌──────────────────────┼──────────────────────┐
-                        ▼                      ▼                      ▼
-                 ┌─────────────┐      ┌──────────────┐      ┌──────────────┐
-                 │ LLM Service │      │ Data Service  │      │ Event Service│
-                 └─────────────┘      └──────────────┘      └──────────────┘
+  Client:       React (web) + iOS + Android
+  Data + Auth:  Supabase (PostgreSQL + PostgREST + Auth + Realtime)
+  Custom:       Orchestrator + LLM Service (svc-orchestra)
+  Events:       Supabase Edge Functions + pg_cron + DB triggers
 
 ⸻
 
-1. API Gateway
+Service Diagram
 
-Single entry point. Auth, rate limiting, routing.
-
-  Client → Gateway → Orchestrator (for all domain requests)
-  Client → Gateway → Data Service (for direct reads: Browse, Timeline rendering)
-
-Responsibilities:
-- Authentication and session management
-- Request routing
-- Rate limiting (token spend controls here)
-- WebSocket support for real-time updates (composition sessions)
+  ┌──────────────────────────┐
+  │  Clients                 │
+  │  React · iOS · Android   │
+  ├────────────┬─────────────┤
+  │            │             │
+  │  Direct    │  Domain     │
+  │  reads     │  requests   │
+  │            │             │
+  ▼            ▼             │
+  ┌──────────────────────┐   │
+  │  Supabase            │   │
+  │  ┌────────────────┐  │   │
+  │  │ Auth           │  │   │
+  │  │ PostgREST API  │  │   │
+  │  │ PostgreSQL     │  │   │
+  │  │ Realtime       │  │   │
+  │  │ Edge Functions │  │   │
+  │  └────────────────┘  │   │
+  └────────┬─────────────┘   │
+           │                 │
+           │  webhook /      │
+           │  function call  │
+           ▼                 │
+  ┌──────────────────────┐   │
+  │  svc-orchestra       │   │
+  │  ┌────────────────┐  │   │
+  │  │ Orchestrator   │  │   │
+  │  │ LLM Service    │  │   │
+  │  └────────────────┘  │   │
+  └──────────────────────┘   │
+                             │
+  Events: DB triggers + Edge Functions + pg_cron
 
 ⸻
 
-2. Orchestrator
+1. Supabase (replaces Gateway + Data Service)
 
-The brain. Receives intents, runs workflows, coordinates services. Maps to engineering blocks: Workflow Coordination + Orchestration.
+What Supabase provides:
 
-Responsibilities:
-- Intent classification (for Notes: "had coffee" → LogMeal)
-- Workflow execution (deterministic tool flows with LLM judgment at decision points)
-- Composition session management (HP05a multi-turn: tracks state across turns)
+Auth:
+- User authentication, session management, JWT tokens
+- Row Level Security (RLS) on all tables — user can only see their own data
+- Social auth + email/password
+
+PostgREST API:
+- Auto-generated REST API from PostgreSQL schema
+- Direct reads for Browse and Timeline (client → Supabase, no Orchestrator needed)
+- Filtering, pagination, search built-in
+
+PostgreSQL:
+- All entities (Food, Recipe)
+- All artifacts (MealPlan, MealLog, NutritionGoal, NutritionReview, ShoppingList, CookingPlan)
+- User context (FactAttributes, ProseAttributes, Circumstances, Intents)
+- Domain context (Events, Observations, Memories)
+- Event log (immutable append table)
+
+Realtime:
+- WebSocket subscriptions for composition session updates
+- WYLO card updates pushed to client
+- Plan adaptation notifications
+
+Edge Functions:
+- Event handlers (DB trigger → Edge Function → calls Orchestrator if needed)
+- WYLO container assembly logic
+- Lightweight computation that doesn't need LLM
+
+⸻
+
+2. svc-orchestra (custom backend — Orchestrator + LLM Service)
+
+Single deployable service. Two logical concerns, one deployment.
+
+Orchestrator responsibilities:
+- Intent classification (Notes: "had coffee" → LogMeal)
+- Workflow execution (deterministic tool flows with LLM judgment)
+- Composition session management (HP05a multi-turn state)
 - Side effect coordination (Goal → config + memories + intent + plan recompute)
 - Validation gate enforcement (HP05b pass/warn/block)
 
-Owns no data. Stateless except for active composition sessions.
+LLM Service responsibilities:
+- Context assembly (HP03: reads from Supabase, scopes per trigger)
+- Prompt construction (expertise spec + context + policy)
+- LLM API calls (provider abstraction, retries, fallback)
+- Structured output parsing
+- Cost tracking
 
-Workflows it runs:
-  LogMeal        → LLM Service (extract) → Data Service (write MealLog) → Event Service (emit)
-  SetGoal        → LLM Service (compose, multi-turn) → LLM Service (validate) → Data Service (write) → Event Service (emit)
-  BuildMealPlan  → LLM Service (generate) → Data Service (write MealPlan) → Event Service (emit)
-  ReviewPeriod   → Data Service (read logs) → LLM Service (analyze) → Data Service (write Review)
-  NoteDispatch   → LLM Service (classify) → routes to appropriate workflow above
+Workflows:
+  NoteDispatch   → classify intent → route to workflow below
+  LogMeal        → LLM extract → write MealLog to Supabase → emit event
+  SetGoal        → LLM compose (multi-turn) → validate → write to Supabase → emit event
+  BuildMealPlan  → LLM generate → write to Supabase → emit event
+  ReviewPeriod   → read from Supabase → LLM analyze → write to Supabase
 
-⸻
-
-3. LLM Service
-
-Wraps all LLM interactions. Maps to engineering block: LLM Pipeline.
-
-Responsibilities:
-- Context assembly (HP03: scopes context per trigger/surface)
-- Prompt construction (expertise spec as system prompt + scoped context + policy)
-- LLM API call management (provider abstraction, retries, fallback)
-- Structured output parsing and validation
-- Cost tracking (token counts per call type)
-
-Serves all 5 call types:
-  Tool judgment   → one-shot, structured output
-  Content fill    → one-shot, prose output
-  Composition     → per-turn, structured output { status, structure, response, question, options }
-  Escape hatch    → one-shot, structured output (mid-workflow clarification)
-  Conversational  → one-shot, prose output (Notes: brief answer cards)
-
-Does NOT manage multi-turn state. Orchestrator owns session state; LLM Service is called per-turn.
-
-Context Composer lives here:
-  Given: trigger type, surface, user_id
-  Assembles: expertise spec + relevant context + applicable policy
-  Returns: complete prompt payload
+Session state: composition sessions stored in Redis or in-memory (ephemeral, not in Supabase).
 
 ⸻
 
-4. Data Service
+3. Event Processing (Supabase-native)
 
-Source of truth. All reads and writes. Maps to engineering block: Data Modeling.
+Built on PostgreSQL triggers + Edge Functions + pg_cron.
 
-Responsibilities:
-- CRUD for all entities (Food, Recipe)
-- CRUD for all artifacts (MealPlan, MealLog, NutritionGoal, NutritionReview, ShoppingList, CookingPlan)
-- User context storage (Attributes, Traits, Circumstances, Intents, Configuration)
-- Domain context storage (Events, Observations, Memories)
-- Query support for Timeline rendering (meals by date range)
-- Query support for Browse (entities by type, filter, search)
+DB triggers (immediate):
+  INSERT on meal_logs   → trigger Edge Function → evaluate plan adaptation
+  INSERT on goals       → trigger Edge Function → cascade config + recompute plan
+  UPDATE on circumstances → trigger Edge Function → adapt plan
 
-Data ownership:
-  Entities          → Food, Recipe (user-scoped)
-  Artifacts         → all artifact types (user + domain scoped)
-  User Context      → FactAttributes, ProseAttributes, Circumstances, Intents
-  Domain Context    → Events (immutable), Observations, Memories
-  Plan Settings     → domain-scoped FactAttributes
+Edge Functions (event handlers):
+  Plan adaptation handler → calls svc-orchestra if LLM needed
+  WYLO assembly → reads current state, computes priority cards
+  Notification handler → push notification to client
 
-⸻
-
-5. Event Service
-
-Async event processing. Maps to engineering blocks: Event Processing + part of Orchestration.
-
-Responsibilities:
-- Event emission (meal_logged, goal_set, plan_built, circumstance_changed, etc.)
-- Event listeners and handlers
-- Trigger evaluation (event → should we do something?)
-- Scheduled jobs (daily plan recalculation, weekly review generation, observation recomputation)
-- WYLO container assembly (reads current state → assembles priority-ordered cards)
-
-Event-driven flows:
-  meal_logged         → MealPlan adaptation (if plan_enabled + reactivity: on_log)
-  goal_set            → MealPlan recompute, config cascade
-  circumstance_changed → MealPlan recompute (all active slots)
-  plan_built          → WYLO update
-  review_generated    → WYLO card surfaced
-  periodic: daily     → plan recalculation (if reactivity: daily)
-  periodic: weekly    → review generation trigger
-
-Observation Engine lives here:
-  Events → metrics → reports (HP02)
-  Reports → dual-rendered observations (numerical for code, prose for LLM)
-  Observations → stabilized → memories (declared + observed paths)
+pg_cron (scheduled):
+  Daily: plan recalculation (if reactivity: daily)
+  Weekly: review generation trigger → calls svc-orchestra
+  Periodic: observation recomputation (HP02 reports)
 
 ⸻
 
 Communication Patterns
 
-  Sync (request/response):
-    Client → Gateway → Orchestrator → LLM Service (per-turn)
-    Client → Gateway → Data Service (reads)
-    Orchestrator → Data Service (reads/writes during workflow)
+  Client reads (no LLM needed):
+    Client → Supabase PostgREST (direct, fast, RLS-secured)
+    Browse, Timeline rendering, meal detail, user context
 
-  Async (event-driven):
-    Orchestrator → Event Service (emit event after workflow completes)
-    Event Service → Orchestrator (trigger new workflow: plan adaptation)
-    Event Service → Data Service (write observations, update WYLO state)
+  Client actions (LLM needed):
+    Client → Supabase Edge Function → svc-orchestra → LLM → write to Supabase
+    Notes dispatch, composition turns, plan generation
 
-  Real-time (WebSocket):
-    Composition sessions: Orchestrator → Client (structure updates per turn)
-    WYLO updates: Event Service → Client (new card available)
+  Event-driven (async):
+    DB trigger → Edge Function → evaluate → maybe call svc-orchestra
+    Background processing, plan adaptation, review generation
+
+  Real-time:
+    Supabase Realtime → Client (subscription on relevant tables)
+    Composition updates, WYLO cards, plan changes
+
+⸻
+
+Data Flow: "had coffee" through the system
+
+  1. User types "had coffee" in Notes tab
+  2. Client → Supabase Edge Function (authenticated via JWT)
+  3. Edge Function → svc-orchestra /dispatch endpoint
+  4. Orchestrator → LLM Service: classify intent (Tool Judgment call)
+     LLM returns: { tool: "LogMeal", params: { items: ["coffee"] } }
+  5. Orchestrator → LLM Service: extract food details (Content Fill call)
+     LLM returns: { food: "coffee, black", kcal: 5, protein: 0, ... }
+  6. Orchestrator → Supabase: INSERT into meal_logs
+  7. DB trigger fires → Edge Function evaluates plan adaptation
+  8. Supabase Realtime → Client: meal_log row appears
+  9. Client renders outcome card: "✓ Coffee · 5 kcal · logged to breakfast"
+
+⸻
+
+Client Architecture
+
+  React (web):      Primary development platform, PWA-capable
+  iOS:              Native or React Native — TBD
+  Android:          Native or React Native — TBD
+
+All clients share:
+- Supabase client SDK (auth, realtime, PostgREST queries)
+- Same business logic for rendering (surfaces, zoom, outcome cards)
+- Offline queue for Notes (sync on reconnect)
 
 ⸻
 
 Service Boundaries
 
-  Service       Owns data?    Calls LLM?    Manages state?
-  Gateway       No            No            Session/auth only
-  Orchestrator  No            Via LLM Svc   Composition sessions (ephemeral)
-  LLM Service   No            Yes           No (stateless per call)
-  Data Service  Yes           No            Persistent data
-  Event Service Partial       Via Orch      Event log, scheduled jobs
-
-⸻
-
-Scaling Characteristics
-
-  Gateway        → horizontal, stateless
-  Orchestrator   → horizontal, sticky sessions for composition (or externalize to Redis)
-  LLM Service    → limited by LLM API rate limits, queue-based for non-real-time calls
-  Data Service   → standard DB scaling
-  Event Service  → queue-based, can lag safely (async by nature)
+  Component         Owns data?    Calls LLM?    Deployment
+  Supabase          Yes           No            Managed (Supabase Cloud)
+  svc-orchestra     No            Yes           Custom (Render / Fly / Railway)
+  Edge Functions    No            Via orchestra  Supabase-managed
+  pg_cron           No            Via edge fn    Supabase-managed
 
 ⸻
 
 Open Questions
 
-1. Orchestrator session storage. Composition sessions need multi-turn state. In-memory (sticky sessions) or externalized (Redis)?
+1. Orchestrator session storage. Composition sessions (multi-turn) need ephemeral state. Redis, or in-process memory with sticky routing?
 
-2. LLM provider abstraction. Single provider or multi-provider with routing? Cost vs quality tradeoffs.
+2. LLM provider. Single provider (e.g. OpenAI/Gemini) or multi-provider routing?
 
-3. Data Service granularity. One service or split (entity service, context service, artifact service)?
+3. iOS/Android strategy. React Native (shared code), native, or Expo?
 
-4. Event Service scope. Is WYLO container assembly part of Event Service or a separate service?
+4. Edge Function limits. Supabase Edge Functions have execution time limits. Long-running LLM calls may need direct client → svc-orchestra for composition flows.
 
-5. Offline support. If client goes offline, Notes queue locally and sync on reconnect. Where does conflict resolution live?
+5. Offline conflict resolution. Notes queued offline → synced → may conflict with server state. Supabase handles this? Or custom merge logic?
