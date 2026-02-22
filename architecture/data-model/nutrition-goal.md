@@ -32,6 +32,7 @@ Primary Tag Vocabulary
 - performance — performance-specific nutrients, training-load awareness
 - behavioral — qualitative goals allowed, pattern-focused reviews
 - operational — execution-focused, practical artifacts prioritized
+- exploratory — tracking without targets, observation-driven, learn-first posture
 
 Secondary tags are granular sub-intents under each primary. Multiple primaries and multiple secondaries per primary — all that fit, applied.
 
