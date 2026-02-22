@@ -123,14 +123,106 @@ Tools like Explain and analytical discussions (ReviewPeriod, DetectPatterns) whe
 
 ⸻
 
-6. LLM Call Types Summary
+6. LLM Call Types
 
-Type           | Trigger          | Output      | State Mutation | HP04 Exposure
-Tool judgment  | User action      | Structured  | Yes            | Low (bounded)
-Content fill   | Render / event   | Prose       | No             | None
-Composition    | HP05a surface    | Structured  | Yes (on ready) | Managed (HP05a anchors)
-Escape hatch   | Ambiguity        | Structured  | Yes (via tool) | High (both)
-Conversational | User initiates   | Prose       | Possible       | Medium (drift)
+⸻
 
-Composition calls are multi-turn. Each turn returns { status, structure, response, question, options }. Code enforces completion boundaries (turn limits, required-field rules). See HP05a for the full contract.
+6.1 Tool Judgment — one-shot, bounded
 
+LLM makes one decision within a deterministic workflow.
+
+  Code: load goal, config, food memories, allergens
+    ↓
+  LLM:  "Generate 7 dinner suggestions fitting these constraints"
+    ↓
+  Code: validate output, write MealPlan entity
+
+Examples: BuildMealPlan (generate meals), LogMeal (extract food from prose), SetGoal (assess targets). One call, structured output, done.
+
+Trigger: user action. Output: structured. State mutation: yes. HP04 exposure: low.
+
+⸻
+
+6.2 Content Fill — prose output, no mutation
+
+LLM decorates a surface with prose. Nothing saved.
+
+  Code: load today's meal logs + targets
+    ↓
+  LLM:  "Summarize this day in one line"
+    ↓
+  Surface: "Solid day — hit protein, a bit over on carbs"
+
+Examples: day view summary, review narrative, insight card. Simplest call type.
+
+Trigger: render / event. Output: prose. State mutation: no. HP04 exposure: none.
+
+⸻
+
+6.3 Composition — multi-turn, code-enforced
+
+HP05a surface. LLM returns structured output per turn. Code enforces completion boundaries.
+
+  Turn 1:
+    User:  "want to lose weight and manage diabetes"
+    LLM:   { status: needs_input, structure: {tags: [body_comp, medical]},
+             response: "Type 1 or 2?", options: ["Type 1", "Type 2"] }
+    Code:  show question, keep input active
+
+  Turn 2:
+    User:  taps [Type 2]
+    LLM:   { status: ready, structure: {tags: [...], targets: [1800 kcal]},
+             response: "Here's what I'd suggest", question: null }
+    Code:  show [✓ Confirm]
+
+Examples: goal-setting, meal logging (prose path), plan building. Each turn returns { status, structure, response, question, options }. See HP05a for full contract.
+
+Trigger: HP05a surface. Output: structured. State mutation: on ready. HP04 exposure: managed.
+
+⸻
+
+6.4 Escape Hatch — mid-workflow ambiguity
+
+Breaks out of a deterministic tool workflow into conversation, then re-enters.
+
+  Code: running BuildMealPlan
+    ↓
+  LLM:  "User said 'light dinner' — need clarification:
+         low-calorie or small portion?"
+    ↓
+  Conversation: LLM asks → user answers
+    ↓
+  LLM:  parses answer → structured data
+    ↓
+  Code: re-enters workflow with clarified input
+
+Most dangerous for HP04 — context can drift during the escape. Both prose→structure and context drift pressures are present.
+
+Trigger: ambiguity. Output: structured. State mutation: via tool. HP04 exposure: high.
+
+⸻
+
+6.5 Conversational — freeform
+
+User asks, system answers. No artifact produced.
+
+  User:  "Is paneer good for protein?"
+    ↓
+  LLM:   "Yes — 100g of paneer has about 18g protein..."
+    ↓
+  Nothing saved (unless system observes a preference to note)
+
+Examples: Explain tool, nutrition questions, "why did you suggest this?"
+
+Trigger: user initiates. Output: prose. State mutation: rare. HP04 exposure: medium (drift).
+
+⸻
+
+6.6 Summary
+
+Type          | Turns | Output     | Mutates?  | HP04 Risk | Surface
+Tool judgment |   1   | Structured | Yes       | Low       | None (backend)
+Content fill  |   1   | Prose      | No        | None      | Inline text
+Composition   |   N   | Structured | On ready  | Managed   | HP05a 3-section
+Escape hatch  |   N   | Structured | Via tool  | High      | Interrupts flow
+Conversational|   N   | Prose      | Rare      | Medium    | Chat
