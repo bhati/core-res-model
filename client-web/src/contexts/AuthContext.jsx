@@ -39,9 +39,11 @@ export function AuthProvider({ children }) {
         supabase.auth.getSession().then(async ({ data: { session } }) => {
             if (!session) {
                 try {
-                    const captchaToken = await getCaptchaToken()
+                    const captchaToken = TURNSTILE_SITE_KEY
+                        ? await getCaptchaToken()
+                        : undefined
                     const { data, error } = await supabase.auth.signInAnonymously({
-                        options: { captchaToken }
+                        options: captchaToken ? { captchaToken } : {}
                     })
                     if (!error) {
                         setSession(data.session)
