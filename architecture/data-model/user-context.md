@@ -6,26 +6,25 @@ Attributes
 
 Physical facts about the user. Cross-domain — any domain may read these.
 
-Each field has metadata: criticality (must-collect at onboarding or optional), expiry (when to prompt re-confirmation), who-writes (user-only or LLM can observe/infer).
+Field schema: each field has required (boolean), entropy (how likely to change), and who_writes (who can set/update).
 
-| Field | Value Type | Criticality | Expiry | Who Writes | Description |
-|---|---|---|---|---|---|
-| weight_kg | Numeric (30-300) | High | 90 days | User only | Body weight. Drives BMR/TDEE calculation. |
-| height_cm | Numeric (100-250) | High | Stable | User only | Height. Drives BMR calculation. |
-| sex_at_birth | Enum (male/female) | Medium | Stable | User only | For BMR formula only. Not used beyond calculation. |
-| base_activity_level | Enum | Medium | 90 days | User + LLM | Sedentary / light / moderate / active / very_active. Affects TDEE. LLM can suggest updates from behavioral data. |
-| age | Numeric | High | Annual | User only | Affects BMR calculation. |
-| chronic_conditions | Enum[] | Critical | Stable | User only | diabetes_type1, diabetes_type2, pcos, kidney_disease, heart_disease, thyroid, ... Activates safety policies. |
-| pregnancy_status | Enum | Critical | Trimester | User only | none / pregnant_trimester_1/2/3 / breastfeeding. Activates pregnancy nutrition policies. |
+| Field | Value Type | Required | Entropy | Who Writes |
+|---|---|---|---|---|
+| weight_kg | Numeric (30-300) | Yes | Moderate — changes over months | User only |
+| height_cm | Numeric (100-250) | Yes | Stable | User only |
+| age | Numeric | Yes | Stable (computed from DOB) | User only |
+| sex_at_birth | Enum (male/female) | No | Stable | User only |
+| base_activity_level | Enum (sedentary/light/moderate/active/very_active) | No | Moderate | User + LLM |
+| chronic_conditions | Enum[] | Yes | Stable | User only |
+| pregnancy_status | Enum | Yes | Moderate — changes per trimester | User only |
 
-Criticality levels:
-- Critical: system must collect before allowing goal-setting. Safety-affecting.
-- High: system should collect at onboarding. Affects calculation quality.
-- Medium: system can function without, but improves accuracy.
+Entropy levels:
+- Stable: rarely changes once set.
+- Moderate: may change over weeks/months. System should track last_updated and allow re-confirmation.
 
-Expiry: when the value goes stale and system should prompt re-confirmation. "Stable" = rarely changes. "90 days" = prompt quarterly.
-
-Who writes: "User only" = system never infers or updates, only user can set. "User + LLM" = LLM can observe patterns and suggest updates ("You seem more active than your profile says. Want to update?") but user must confirm.
+Who writes:
+- User only: system never infers or updates.
+- User + LLM: LLM can suggest updates, user must confirm.
 
 ⸻
 
@@ -47,7 +46,6 @@ Temporary conditions affecting behavior and needs.
 - active_circumstances: [{ type, description, status (upcoming / active / resolving), start_date, expected_end }]
 
 Type vocabulary: traveling, fasting, sick, exam_period, holiday, moving, work_stress, social_event, ...
-Circumstances are declared by user or detected by LLM from conversation.
 
 ⸻
 
@@ -60,13 +58,13 @@ Intents (created as Goal side effects, cross-domain readable)
 
 User Configuration
 
-Presentation and interaction preferences. These govern how the system communicates, not what it computes.
+Presentation and interaction preferences.
 
-| Field | Value Type | Default | Who Writes | Description |
+| Field | Value Type | Default | Entropy | Who Writes |
 |---|---|---|---|---|
-| notification_frequency | Enum | moderate | User only | How often system reaches out proactively. |
-| proactivity_level | Enum | moderate | User only | How aggressively system suggests actions. |
-| data_density | Enum | balanced | User + LLM | numbers / qualitative / balanced. Affects report style. |
-| tone | Enum | balanced | User + LLM | direct / gentle / balanced. Affects narrative voice. |
-| planning_rigidity | Enum | moderate | User + LLM | precise / moderate / loose. Affects MealPlan detail level. |
-| autonomy_vs_guidance | Enum | balanced | User + LLM | How much the system guides vs lets user lead. |
+| notification_frequency | Enum | moderate | Stable | User only |
+| proactivity_level | Enum | moderate | Stable | User only |
+| data_density | Enum (numbers/qualitative/balanced) | balanced | Stable | User + LLM |
+| tone | Enum (direct/gentle/balanced) | balanced | Stable | User + LLM |
+| planning_rigidity | Enum (precise/moderate/loose) | moderate | Stable | User + LLM |
+| autonomy_vs_guidance | Enum | balanced | Stable | User + LLM |
