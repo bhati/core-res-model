@@ -132,17 +132,54 @@ This pattern applies to all base entities (Food, Recipe) across all domains.
 
 Recipe
 
-A structured preparation method that transforms foods into a meal.
+A structured preparation method that transforms foods into a meal. Follows the same two-table pattern as Food (global + user, entity resolution).
 
+Metadata groupings:
+
+Identity (stable, objective, mandatory)
 - id
-- name ("dal tadka", "overnight oats", "chicken stir-fry")
+- display_name ("Dal Tadka", "Overnight Oats", "Chicken Stir-Fry")
+- slug
+- aliases / regional_names
+- Source: global catalog or user-created. Confidence: high.
+
+Structural (stable, objective, mandatory)
 - ingredients: [{ food_ref, quantity, unit, preparation }]
 - method (prose — cooking steps)
 - cooking_time_minutes
 - serves
-- computed_nutrition (derived from ingredients)
+- Source: global catalog (curated) or user-created. Confidence: high (curated), medium (user/LLM-created).
+
+Nutritional (stable, objective, mandatory — derived)
+- computed_nutrition: derived from ingredient food refs + quantities
+- per_serving_nutrition: computed_nutrition / serves
+- Source: computed from ingredient foods. Confidence: inherits from ingredient food confidence.
+
+Safety / Dietary (stable, objective, mandatory — derived)
+- allergen_tags: union of all ingredient allergen tags
+- dietary_flags: intersection of all ingredient dietary flags
+- safety_flags: union of all ingredient safety flags
+- Source: derived from ingredients. Confidence: inherits from ingredients. One flagged ingredient flags the recipe.
+
+Categorical (stable, interpretive, enrichment)
 - cuisine_tags: [indian_north, mediterranean, east_asian, ...]
-- dietary_flags (derived from ingredient flags)
+- difficulty (easy / medium / advanced)
+- meal_type_affinity: [breakfast, lunch, dinner, snack]
+- Source: global catalog, LLM-suggested. Confidence: medium.
+
+Source / Meta (mutable, objective, operational)
+- source (system_database / user_created)
+- status (active / deprecated)
+- created_at, updated_at
+
+Recipe across layers:
+Global Recipe — complete canonical record, all groupings.
+User Recipe — user-scoped. Override mode (patches on global) or standalone (user's own recipes — most common case for recipes).
+MealPlan recipe item — user_recipe_ref + display_name (copied) + serves_used + computed_nutrition (copied at build time).
+
+Propagation: same rules as Food. Copy at build/log time. Active MealPlan recomputes on recipe update (surfaced). Safety resolves live.
+
+Entity resolution: same pipeline as Food. LLM extraction → text/fuzzy search (MVP) → vector search (enhancement) → user table first → global → create standalone.
 
 ⸻
 
@@ -154,21 +191,37 @@ These are structured forms the domain produces. They have lifecycles, reference 
 
 Goal
 
-A commitment the user makes. Creates side effects in config, memories, and intents.
+One active Goal per domain. All artifacts implicitly serve the active Goal — no artifact-level goal scoping needed.
+
+A tagged commitment. The statement is prose (the user's words). Tags are structural anchors at two levels for policy activation and product behavior.
 
 - id
 - user_id
-- statement (prose: "Lose weight at 1800 kcal/day")
-- intent_category (body_composition / performance / medical / behavioral / operational)
-- targets: [{ metric, value, unit, timeframe }]
-  e.g., [{ calorie_target, 1800, kcal/day, ongoing }, { protein_target, 130, g/day, ongoing }]
-- side_effects:
-  - config_updates: [{ key, value }]
-  - memories_created: [{ content, type }]
-  - intent_created: { category, sub_intent }
+- domain (nutrition)
+- statement (prose: "Manage diabetes through diet, lose weight, eat better")
+- tags: { [primary]: [secondary, ...], ... }
+  Primary tags activate policy sets. Secondary tags give granularity.
+  e.g., { medical: [diabetes_management, medication_aware_diet], body_composition: [weight_loss, caloric_deficit], behavioral: [mindful_eating] }
+- targets: [{ metric, value, unit }] — optional, LLM-derived from statement + assessment
+  e.g., [{ calorie_target, 1800, kcal/day }, { protein_target, 130, g/day }]
+- config_effects: [{ key, value }] — LLM determines from statement + assessment
+  e.g., [{ calorie_target, 1800 }, { macro_split, { protein: 30, carb: 40, fat: 30 } }]
 - status (active / revised / retired)
 - predecessor_id (if revised, which Goal it replaced)
 - created_at, revised_at, retired_at
+
+Primary tag vocabulary:
+- medical — activates medical safety policies, disclaimers, medication awareness
+- body_composition — caloric assessment, minimum floors, timeline validation
+- performance — performance-specific nutrients, training-load awareness
+- behavioral — qualitative goals allowed, pattern-focused reviews
+- operational — execution-focused, practical artifacts prioritized
+
+Secondary tags are granular sub-intents under each primary. Multiple primaries and multiple secondaries per primary — all that fit, applied.
+
+Goal revision: when revised, config effects cascade. Active MealPlan flagged for recomputation. Prior Goal preserved with predecessor chain.
+
+Memories: Goal statement echoes as a cross-domain memory in user context ("user wants to manage diabetes and lose weight"). Readable by other domains.
 
 ⸻
 
