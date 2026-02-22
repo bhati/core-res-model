@@ -36,6 +36,8 @@ This is where reviews come to the user — not a tab, not a zoom level. A card t
 
 No fixed layout. Containers appear, disappear, and reorder based on priority and time of day.
 
+Zero state (new user): WYLO becomes the onboarding surface. No data to resume, so containers guide setup: "Tell me your goal ▸", "Any dietary restrictions? ▸", "Log your first meal ▸". Onboarding is not a separate journey — it's WYLO when there's nothing to resume.
+
 ⸻
 
 2. Timeline
