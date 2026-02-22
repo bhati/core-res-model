@@ -113,6 +113,23 @@ Exception — Safety: allergen and safety flags always resolve live from user_fo
 
 ⸻
 
+Food Entity Resolution (prose → food_id)
+
+When user input is prose ("I had poha for breakfast"), the system must resolve the extracted food name to a food_id.
+
+Pipeline: LLM extraction + entity resolution.
+
+Step 1: LLM extracts food info from prose → { name, quantity, meal_type, description }
+Step 2: Entity resolution → search user food table first, then global catalog
+Step 3: High confidence match → auto-resolve. Low confidence or ambiguous → clarify with user. No match → create standalone user food (LLM estimates nutrition).
+Step 4: If resolved from global → fork to user table (first-use flow).
+
+MVP resolution: text search + fuzzy matching + alias lookup. Handles exact matches and common variations.
+
+Enhancement: vector search. Pre-compute embeddings for all foods (name + aliases + description). At resolution time, embed the extracted description, search vector space. Handles semantic matching ("flattened rice thing" → "poha"), regional variations, and novel descriptions. Not mandatory scope — treat as progressive enhancement over text search.
+
+This pattern applies to all base entities (Food, Recipe) across all domains.
+
 Recipe
 
 A structured preparation method that transforms foods into a meal.
