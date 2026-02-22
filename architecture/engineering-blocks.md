@@ -88,33 +88,22 @@ policy-scoping-notes.md
 
 ⸻
 
-4. Gaps — Domain Concepts Without a Clear Engineering Home
+4. Gaps — Resolved
 
-Gap 1: States and Transitions
-States (Learn, Plan, Do, Analyze) and transitions (state → state) are defined in the domain model. But no block explicitly tracks "what state is the user in" or manages transitions. Is state tracked explicitly by the system, or inferred by the LLM from context each time?
+Gap 1: States and Transitions — RESOLVED
+States are not tracked as runtime state machines. They served as design scaffolding to discover artifacts and tools. At runtime, states dissolve into:
+- Design output (artifacts, tools) → already in Data Modeling + Workflow Coordination
+- Expertise methodology (LLM posture guidance) → already in LLM Pipeline (system prompt)
+- UX context signal → where the user is in the app naturally carries a state tag (e.g., meal plan builder = Plan, viewing logs = Analyze). This tag flows to context composer for scoping (HP03) and to expertise as posture cue. No new block needed.
 
-Gap 2: Engagement Level Detection
-Defined as an observed trait — derived from behavior (logging frequency, tool usage, session frequency). This is not user-declared. Is it a computed metric (event processing)? Or an LLM judgment? It influences expertise posture (browsing → friend, committed → advisor).
+Gap 2: Engagement Level Detection — RESOLVED
+Falls into HP02. Logging frequency, session frequency, tool usage are all event-derived metrics. System reports user metrics and summaries that can be turned into observations. Exact thresholds and qualitative dimensions are implementation detail. No new block.
 
-Gap 3: Intent Activation
-Intents are defined and taxonomized. They shape state emphasis, artifact priority, and tool exposure. But who reads intents and configures the system accordingly? Is it the LLM reading intents as part of context? Or does the system deterministically route based on active intents?
+Gap 3: Intent Activation — RESOLVED
+Goals create intents as side effects (alongside config and memories). Within a domain, Goal → creates domain intent. Across domains, other domain Goals create user-level intents that are visible as cross-domain context. All relevant intents are injected as context. Expertise (LLM) reads intents and uses judgment — all domain judgments live in expertise, as it's the only mechanism with semantic understanding. No deterministic routing based on intent. No new block.
 
-Gap 4: Proactivity
-The system reaching out — scheduled reviews, nudges, insight surfacing. This is system-initiated, not user-triggered. No block handles triggers that originate from the system rather than from a user action. Could be scheduled jobs (event processing), could be its own concern.
+Gap 4: Proactivity — RESOLVED
+Triggered by cron (scheduled jobs) and eventing (event-driven thresholds). Both feed into the same pipeline: trigger → context compose → LLM → output. The trigger source is system-initiated instead of user-initiated, but the pipeline is identical. Lives in Event Processing + Orchestration. No new block.
 
-Gap 5: Cross-Domain Inputs
-nutrition-context.md defines cross-domain inputs (weight, blood sugar, workouts, stress). These are parked with domain routing (future), but the domain files reference them.
-
-⸻
-
-5. Open Architectural Choice
-
-Gaps 1 and 3 may be the same question: does the system explicitly track state + intent and deterministically configure behavior? Or does the LLM infer everything from context each time?
-
-Option A: Explicit state tracking. The system tracks current state and active intents. Uses them to deterministically configure context scoping, tool exposure, and presentation. LLM receives state as input.
-
-Option B: LLM-inferred. No explicit state tracking. The LLM reads context (entities, memories, recent events) and infers where the user is and what to prioritize. State is emergent, not tracked.
-
-Option C: Hybrid. Some things are explicit (active intents, engagement level as computed metric), some are inferred (current state within a session).
-
-Resolution: TBD.
+Gap 5: Cross-Domain Inputs — PROVISIONALLY RESOLVED
+Treated as domain signals or user signals. Weight, blood sugar, workouts, stress enter the system through existing data layer mechanisms. Full cross-domain routing architecture is parked for multi-domain phase.
