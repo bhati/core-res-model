@@ -75,3 +75,28 @@ Design Rules
 5. Mode transitions are seamless. Prose → system can't resolve → offers structured fallback. Confirm → user wants to adjust → opens structured edit. No dead ends.
 
 6. tracking_granularity biases the default. exact users see structured surface first. approximate users see prose first. Same capability, different entry point.
+
+⸻
+
+HP05a — Three-Section Composition Surface
+
+When prose input is used to build a structured artifact (meal log, goal, plan), the surface uses three sections:
+
+Structure (top) — the artifact being built. Updates live as prose resolves into data. Acts as an anchor — always visible, always showing what the system has captured. Prevents context drift by keeping the destination visible. Zero state can show high-probability predictions (time of day, plan, history).
+
+Assistant (middle) — the system's latest response only. Not a scrolling chat thread. Always in service of completing the structure — not freeform conversation. If user drifts, assistant redirects toward the structure. Holds cues at zero state, clarification questions during input, confirmation when complete.
+
+User (bottom) — input surface. Free-form text box as default. When assistant asks a clarification, quick-select options appear alongside the text box. User can always type or tap.
+
+Why this solves HP04:
+- Prose → Structure: structure surface makes the conversion visible and verifiable in real-time. User sees what the system understood immediately.
+- Context Drift: structure surface acts as anchor. Assistant is bounded — serves the structure, not the conversation. No scrolling thread to drift into.
+
+This is what makes the interaction not-a-chatbot. Without the structure surface, it's a chat app. With it, it's a guided composition tool that accepts natural language.
+
+Design rules:
+1. Structure accumulates, conversation doesn't. Structure grows as data resolves. Assistant only shows latest exchange.
+2. Assistant always serves the structure. Every assistant response moves the structure toward completion.
+3. User input is flexible. Prose and quick-select coexist. Mode blends naturally.
+4. Conversation depth is bounded. System logs what it has after reasonable attempts rather than interrogating.
+
