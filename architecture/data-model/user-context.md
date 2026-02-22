@@ -4,7 +4,7 @@ Two data structures for all user context. Same scoping pattern on both.
 
 ⸻
 
-UserFacts (structured, code-consumed)
+FactAttributes (structured, code-consumed)
 
 Field-level data. Consumed by code (deterministic switches, calculations) and LLM (as input data).
 

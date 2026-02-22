@@ -74,5 +74,5 @@ Artifacts:
 - cooking-plan.md — CookingPlan (derived from MealPlan + Recipes)
 
 Context & Infrastructure:
-- user-context.md — UserFacts + ProseAttributes + Circumstances + Intents (unified, scoped)
+- user-context.md — FactAttributes + ProseAttributes + Circumstances + Intents (unified, scoped)
 - events.md — Events (immutable log)
