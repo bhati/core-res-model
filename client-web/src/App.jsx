@@ -1,34 +1,30 @@
-import { BrowserRouter, Routes, Route, NavLink } from 'react-router-dom'
-import { AuthProvider } from './contexts/AuthContext'
+import { Routes, Route, Navigate } from 'react-router-dom'
+import AppShell from './components/AppShell'
+import BottomNav from './components/BottomNav'
+
 import Wylo from './pages/Wylo'
 import Timeline from './pages/Timeline'
 import Browse from './pages/Browse'
 import You from './pages/You'
-import './App.css'
 
 function App() {
   return (
-    <AuthProvider>
-      <BrowserRouter>
-        <div className="app">
-          <main className="app-main">
+    <div className="min-h-dvh bg-surface-bg">
+      <AppShell>
+        <div className="flex flex-col h-full">
+          <main className="flex-1 px-4 pt-6 pb-4">
             <Routes>
               <Route path="/" element={<Wylo />} />
               <Route path="/timeline" element={<Timeline />} />
               <Route path="/browse" element={<Browse />} />
               <Route path="/you" element={<You />} />
+              <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </main>
-
-          <nav className="app-nav">
-            <NavLink to="/" end>WYLO</NavLink>
-            <NavLink to="/timeline">Timeline</NavLink>
-            <NavLink to="/browse">Browse</NavLink>
-            <NavLink to="/you">You</NavLink>
-          </nav>
+          <BottomNav />
         </div>
-      </BrowserRouter>
-    </AuthProvider>
+      </AppShell>
+    </div>
   )
 }
 
