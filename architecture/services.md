@@ -8,8 +8,9 @@ Tech Stack
 
   Client:       React (web) + iOS + Android
   Data + Auth:  Supabase (PostgreSQL + PostgREST + Auth + Realtime)
-  Custom:       Orchestrator + LLM Service (svc-orchestra)
-  Events:       Supabase Edge Functions + pg_cron + DB triggers
+  Queue:        pgmq (PostgreSQL-native message queue, Supabase extension)
+  Orchestrator: svc-orchestra (FastAPI — workflows + LLM)
+  Events:       svc-events (FastAPI — event processing + observations)
 
 ⸻
 
@@ -18,167 +19,195 @@ Service Diagram
   ┌──────────────────────────┐
   │  Clients                 │
   │  React · iOS · Android   │
-  ├────────────┬─────────────┤
-  │            │             │
-  │  Direct    │  Domain     │
-  │  reads     │  requests   │
-  │            │             │
-  ▼            ▼             │
-  ┌──────────────────────┐   │
-  │  Supabase            │   │
-  │  ┌────────────────┐  │   │
-  │  │ Auth           │  │   │
-  │  │ PostgREST API  │  │   │
-  │  │ PostgreSQL     │  │   │
-  │  │ Realtime       │  │   │
-  │  │ Edge Functions │  │   │
-  │  └────────────────┘  │   │
-  └────────┬─────────────┘   │
-           │                 │
-           │  webhook /      │
-           │  function call  │
-           ▼                 │
-  ┌──────────────────────┐   │
-  │  svc-orchestra       │   │
-  │  ┌────────────────┐  │   │
-  │  │ Orchestrator   │  │   │
-  │  │ LLM Service    │  │   │
-  │  └────────────────┘  │   │
-  └──────────────────────┘   │
-                             │
-  Events: DB triggers + Edge Functions + pg_cron
+  └────────┬─────────────────┘
+           │
+    reads  │  actions
+           │
+  ┌────────▼─────────────────────────────────────────┐
+  │  Supabase                                        │
+  │  ┌──────────┐ ┌──────────┐ ┌────────┐ ┌──────┐  │
+  │  │ Auth     │ │ PostgREST│ │Realtime│ │ pgmq │  │
+  │  └──────────┘ └──────────┘ └────────┘ └──┬───┘  │
+  │                PostgreSQL                 │      │
+  └──────────────────────────────────┬────────┘──────┘
+                                     │
+                          publishes   │   consumes
+                                     │
+              ┌──────────────────┐   │   ┌──────────────────┐
+              │  svc-orchestra   │───┘───│  svc-events      │
+              │                  │       │                   │
+              │  Orchestrator    │◄──────│  Event evaluation │
+              │  LLM Service     │       │  Observations     │
+              │                  │       │  WYLO assembly    │
+              └──────────────────┘       │  Scheduling       │
+                                         └──────────────────┘
+
+  svc-orchestra publishes events to pgmq after workflows complete.
+  svc-events consumes from pgmq, evaluates, and acts.
 
 ⸻
 
-1. Supabase (replaces Gateway + Data Service)
+1. Supabase
 
 What Supabase provides:
 
-Auth:
-- User authentication, session management, JWT tokens
-- Row Level Security (RLS) on all tables — user can only see their own data
-- Social auth + email/password
+Auth — JWT tokens, RLS, session management.
+PostgREST — auto-generated REST API. Direct reads for Browse, Timeline.
+PostgreSQL — all entities, artifacts, user/domain context.
+Realtime — WebSocket push to clients (composition updates, WYLO cards).
+pgmq — PostgreSQL-native message queue. Event bus between services.
 
-PostgREST API:
-- Auto-generated REST API from PostgreSQL schema
-- Direct reads for Browse and Timeline (client → Supabase, no Orchestrator needed)
-- Filtering, pagination, search built-in
+pgmq usage:
+  Queues created per event type or per concern:
+    q_meal_events     — meal_logged, meal_skipped, meal_confirmed
+    q_plan_events     — plan_built, plan_adapted, plan_superseded
+    q_goal_events     — goal_set, goal_revised
+    q_context_events  — circumstance_changed, attribute_updated
+    q_scheduled       — daily_recalc, weekly_review, observation_recompute
 
-PostgreSQL:
-- All entities (Food, Recipe)
-- All artifacts (MealPlan, MealLog, NutritionGoal, NutritionReview, ShoppingList, CookingPlan)
-- User context (FactAttributes, ProseAttributes, Circumstances, Intents)
-- Domain context (Events, Observations, Memories)
-- Event log (immutable append table)
+  svc-orchestra publishes:
+    SELECT pgmq.send('q_meal_events', '{"type": "meal_logged", "id": "...", "user_id": "..."}');
 
-Realtime:
-- WebSocket subscriptions for composition session updates
-- WYLO card updates pushed to client
-- Plan adaptation notifications
+  svc-events consumes:
+    SELECT pgmq.read('q_meal_events', vt := 30, qty := 10);
+    -- processes batch, then:
+    SELECT pgmq.delete('q_meal_events', msg_id);
 
-Edge Functions:
-- Event handlers (DB trigger → Edge Function → calls Orchestrator if needed)
-- WYLO container assembly logic
-- Lightweight computation that doesn't need LLM
+  Benefits:
+  - No external queue infrastructure
+  - Transactional with data writes (publish in same transaction as INSERT)
+  - Visibility timeout (vt) gives at-least-once delivery
+  - Dead letter via pgmq.archive()
 
 ⸻
 
-2. svc-orchestra (custom backend — Orchestrator + LLM Service)
+2. svc-orchestra (custom backend)
 
-Single deployable service. Two logical concerns, one deployment.
+The brain. Workflows + LLM. Single deployable FastAPI service.
 
-Orchestrator responsibilities:
+Orchestrator:
 - Intent classification (Notes: "had coffee" → LogMeal)
-- Workflow execution (deterministic tool flows with LLM judgment)
-- Composition session management (HP05a multi-turn state)
-- Side effect coordination (Goal → config + memories + intent + plan recompute)
+- Workflow execution (deterministic flows with LLM judgment)
+- Composition session management (HP05a multi-turn)
+- Side effect coordination (Goal → config + memories + plan recompute)
 - Validation gate enforcement (HP05b pass/warn/block)
 
-LLM Service responsibilities:
+LLM Service:
 - Context assembly (HP03: reads from Supabase, scopes per trigger)
 - Prompt construction (expertise spec + context + policy)
-- LLM API calls (provider abstraction, retries, fallback)
+- LLM API calls (provider abstraction, retries)
 - Structured output parsing
 - Cost tracking
 
+After workflow completion:
+  1. Write result to Supabase (INSERT/UPDATE)
+  2. Publish event to pgmq (in same transaction if possible, otherwise immediately after)
+
 Workflows:
   NoteDispatch   → classify intent → route to workflow below
-  LogMeal        → LLM extract → write MealLog to Supabase → emit event
-  SetGoal        → LLM compose (multi-turn) → validate → write to Supabase → emit event
-  BuildMealPlan  → LLM generate → write to Supabase → emit event
-  ReviewPeriod   → read from Supabase → LLM analyze → write to Supabase
+  LogMeal        → LLM extract → write MealLog → publish meal_logged
+  SetGoal        → LLM compose (multi-turn) → validate → write → publish goal_set
+  BuildMealPlan  → LLM generate → write MealPlan → publish plan_built
+  ReviewPeriod   → read logs → LLM analyze → write Review → publish review_generated
 
-Session state: composition sessions stored in Redis or in-memory (ephemeral, not in Supabase).
+Session state: composition sessions in Redis or in-process (ephemeral).
 
 ⸻
 
-3. Event Processing (Supabase-native)
+3. svc-events (custom backend)
 
-Built on PostgreSQL triggers + Edge Functions + pg_cron.
+Event processor. Consumes from pgmq, evaluates, acts. Separate FastAPI service.
 
-DB triggers (immediate):
-  INSERT on meal_logs   → trigger Edge Function → evaluate plan adaptation
-  INSERT on goals       → trigger Edge Function → cascade config + recompute plan
-  UPDATE on circumstances → trigger Edge Function → adapt plan
+Responsibilities:
+- Event consumption (polls pgmq queues)
+- Event evaluation (does this event require action?)
+- Observation engine (HP02: events → metrics → reports → observations)
+- WYLO container assembly (reads state → computes priority cards → writes to Supabase)
+- Scheduled job handling (receives cron triggers from pg_cron)
 
-Edge Functions (event handlers):
-  Plan adaptation handler → calls svc-orchestra if LLM needed
-  WYLO assembly → reads current state, computes priority cards
-  Notification handler → push notification to client
+Event-driven flows:
 
-pg_cron (scheduled):
-  Daily: plan recalculation (if reactivity: daily)
-  Weekly: review generation trigger → calls svc-orchestra
-  Periodic: observation recomputation (HP02 reports)
+  meal_logged:
+    1. Check plan_enabled + plan_reactivity
+    2. If on_log → call svc-orchestra /adapt-plan
+    3. Recompute daily calorie/macro observations
+    4. Update WYLO state
+
+  goal_set:
+    1. Cascade config effects (write FactAttributes)
+    2. Flag active MealPlan for recompute
+    3. Call svc-orchestra /rebuild-plan
+    4. Update WYLO state
+
+  circumstance_changed:
+    1. Call svc-orchestra /adapt-plan (all active slots)
+    2. Update WYLO state
+
+  daily_recalc (pg_cron → svc-events):
+    1. For users with plan_reactivity: daily
+    2. Call svc-orchestra /rebuild-plan
+    3. Recompute observations
+
+  weekly_review (pg_cron → svc-events):
+    1. Call svc-orchestra /generate-review
+    2. Surface review card in WYLO
+
+Observation Engine:
+  Events → aggregate metrics (SQL) → build reports (HP02)
+  Reports → dual-render (numerical for code, prose for LLM)
+  Observations → stabilize → become memories
+
+Does NOT call LLM directly. Always goes through svc-orchestra for LLM needs.
 
 ⸻
 
 Communication Patterns
 
-  Client reads (no LLM needed):
-    Client → Supabase PostgREST (direct, fast, RLS-secured)
-    Browse, Timeline rendering, meal detail, user context
+  Client reads (no LLM):
+    Client → Supabase PostgREST (direct, RLS-secured)
+    Browse, Timeline, meal detail, user context
 
   Client actions (LLM needed):
-    Client → Supabase Edge Function → svc-orchestra → LLM → write to Supabase
+    Client → svc-orchestra → LLM → write to Supabase → publish to pgmq
     Notes dispatch, composition turns, plan generation
 
-  Event-driven (async):
-    DB trigger → Edge Function → evaluate → maybe call svc-orchestra
-    Background processing, plan adaptation, review generation
+  Event processing (async):
+    pgmq → svc-events → evaluate → maybe call svc-orchestra
+    Plan adaptation, observation updates, WYLO rebuild
 
-  Real-time:
-    Supabase Realtime → Client (subscription on relevant tables)
-    Composition updates, WYLO cards, plan changes
+  Scheduled (cron):
+    pg_cron → svc-events endpoint → triggers batch work
+
+  Real-time to client:
+    Supabase Realtime → Client (table change subscriptions)
+    WYLO card updates, plan changes, composition progress
 
 ⸻
 
-Data Flow: "had coffee" through the system
+Data Flow: "had coffee"
 
   1. User types "had coffee" in Notes tab
-  2. Client → Supabase Edge Function (authenticated via JWT)
-  3. Edge Function → svc-orchestra /dispatch endpoint
-  4. Orchestrator → LLM Service: classify intent (Tool Judgment call)
-     LLM returns: { tool: "LogMeal", params: { items: ["coffee"] } }
-  5. Orchestrator → LLM Service: extract food details (Content Fill call)
-     LLM returns: { food: "coffee, black", kcal: 5, protein: 0, ... }
-  6. Orchestrator → Supabase: INSERT into meal_logs
-  7. DB trigger fires → Edge Function evaluates plan adaptation
+  2. Client → svc-orchestra /dispatch (authenticated via Supabase JWT)
+  3. Orchestrator → LLM: classify intent → { tool: "LogMeal" }
+  4. Orchestrator → LLM: extract → { food: "coffee", kcal: 5 }
+  5. Orchestrator → Supabase: INSERT meal_log
+  6. Orchestrator → pgmq: send('q_meal_events', { type: "meal_logged", ... })
+  7. svc-events: consumes event → recompute observations → update WYLO
   8. Supabase Realtime → Client: meal_log row appears
-  9. Client renders outcome card: "✓ Coffee · 5 kcal · logged to breakfast"
+  9. Client renders: "✓ Coffee · 5 kcal · logged"
 
 ⸻
 
 Client Architecture
 
-  React (web):      Primary development platform, PWA-capable
-  iOS:              Native or React Native — TBD
-  Android:          Native or React Native — TBD
+  React (web):  Primary development. PWA-capable.
+  iOS:          TBD — native, React Native, or Expo
+  Android:      TBD — native, React Native, or Expo
 
 All clients share:
 - Supabase client SDK (auth, realtime, PostgREST queries)
-- Same business logic for rendering (surfaces, zoom, outcome cards)
-- Offline queue for Notes (sync on reconnect)
+- Same rendering logic (surfaces, zoom, outcome cards)
+- Offline queue for Notes (local queue → sync via svc-orchestra on reconnect)
 
 ⸻
 
@@ -187,19 +216,15 @@ Service Boundaries
   Component         Owns data?    Calls LLM?    Deployment
   Supabase          Yes           No            Managed (Supabase Cloud)
   svc-orchestra     No            Yes           Custom (Render / Fly / Railway)
-  Edge Functions    No            Via orchestra  Supabase-managed
-  pg_cron           No            Via edge fn    Supabase-managed
+  svc-events        No            Via orchestra  Custom (Render / Fly / Railway)
 
 ⸻
 
 Open Questions
 
-1. Orchestrator session storage. Composition sessions (multi-turn) need ephemeral state. Redis, or in-process memory with sticky routing?
-
-2. LLM provider. Single provider (e.g. OpenAI/Gemini) or multi-provider routing?
-
-3. iOS/Android strategy. React Native (shared code), native, or Expo?
-
-4. Edge Function limits. Supabase Edge Functions have execution time limits. Long-running LLM calls may need direct client → svc-orchestra for composition flows.
-
-5. Offline conflict resolution. Notes queued offline → synced → may conflict with server state. Supabase handles this? Or custom merge logic?
+1. Orchestrator session storage. Composition sessions (multi-turn) — Redis or in-process?
+2. LLM provider. Single provider or multi-provider routing?
+3. iOS/Android strategy. React Native, Expo, or native?
+4. pgmq transaction boundary. Can event publish be in same DB transaction as data write?
+5. svc-events scaling. Single consumer or multiple workers per queue?
+6. Offline conflict resolution. Notes queued offline → synced → merge strategy?
