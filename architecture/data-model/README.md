@@ -66,7 +66,7 @@ Base Entities:
 - recipe.md — Recipe (structured preparation method)
 
 Artifacts:
-- goal.md — Goal (tagged commitment, one per domain)
+- nutrition-goal.md — NutritionGoal (tagged commitment, one per domain)
 - meal-plan.md — MealPlan (temporal arrangement of intended meals)
 - meal-log.md — MealLog (load-bearing artifact — record of what was eaten)
 - nutrition-review.md — NutritionReview (MacroReview + MealReview, extensible)

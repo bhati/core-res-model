@@ -1,4 +1,4 @@
-Goal
+NutritionGoal
 
 One active Goal per domain. All artifacts implicitly serve the active Goal — no artifact-level goal scoping needed.
 
