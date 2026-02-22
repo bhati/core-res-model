@@ -35,8 +35,8 @@ Paint by numbers
 
 New from journey work
 
-  AQ10. Chat placement — floating button / WYLO card / HP05a mode / fifth tab?
-  AQ11. Events architecture — no formal spec for events, emitters, listeners
+  AQ10. Chat placement — RESOLVED: Notes tab (auto-processed post-its)
+  AQ11. Events architecture — RESOLVED: pgmq + svc-events
   AQ12. WYLO priority model — which containers, what order?
   AQ13. Zoom slider vs segmented tabs — touch target viability
 
@@ -61,14 +61,14 @@ Resolved by proposal:
   DQ16 (time progression) — same layout, content shifts
 
 Still open:
-  DQ4. Slot source when plan_enabled: false — imposed structure or blank?
-  DQ5. Non-3-meal users (OMAD, grazers) — slot model flex
-  DQ6. Snacks — their own slots or "other" bucket?
+  DQ4. Slot source when plan_enabled: false — RESOLVED: 3-slot default template, user-configurable
+  DQ5. Non-3-meal users (OMAD, grazers) — RESOLVED: 7 predefined slots + custom
+  DQ6. Snacks — RESOLVED: predefined slots include mid-day bite, evening snack, late night
   DQ7-10. Zero states — see known concerns below
   DQ11-13. Progress bars — when to show, exploratory users, confidence weighting
   DQ14-15. Content fill timing — daily summary after N logs? Insights here or weekly only?
   DQ17. End-of-day prompt — "You didn't log dinner — skip or forgot?"
-  DQ20. Chat entry point relative to Day View
+  DQ20. Chat entry point — RESOLVED: Notes tab is the input surface
 
 ⸻
 
@@ -79,7 +79,7 @@ Log a Meal:
   LC2. Batch prose — multi-meal parsing from one input underspecified
   LC3. Navigation cost of [✎] — 3 edits = 3 round trips
   LC4. Refinement overkill — simple quantity edit shouldn't need full HP05a
-  LC5. Day view assumes meal slots — cultural B/L/D pattern doesn't fit everyone
+  LC5. Day view assumes meal slots — RESOLVED: configurable slot template
 
 Set a Goal:
   GC1. Assessment depth — too many questions feels clinical
@@ -126,13 +126,13 @@ Build a Plan:
 Summary Counts
 
   Category                Count  Resolved/Partial  Truly Open
-  Architecture questions    13         3               10
-  Navigation questions       6         1                5
-  Day View questions        20        ~6              ~14
-  Journey concerns          14         0               14
+  Architecture questions    13         5                8
+  Navigation questions       6         2                4
+  Day View questions        20       ~10              ~10
+  Journey concerns          14         1               13
   Product principles         4         0                4
   Nutrition domain           6         0                6
   HP04 TBDs                  2         1                1
   Stale files                3         0                3
   ─────────────────────────────────────────────────────────
-  Total                     68       ~11              ~57
+  Total                     68       ~19              ~49

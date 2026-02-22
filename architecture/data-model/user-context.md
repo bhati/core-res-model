@@ -40,9 +40,33 @@ Domain scope (nutrition) — domain-specific constraints:
 |---|---|---|---|---|
 | dietary_exclusions | Enum[] | Yes | Stable | User only |
 | allergy_exclusions | Enum[] | Yes | Stable | User only |
+| meal_slots | SlotConfig[] | No | Stable | User only |
+| plan_enabled | Boolean | No | Stable | User only |
+| plan_window | Enum (next_meal/day/week) | No | Stable | User only |
+| plan_reactivity | Enum (on_log/daily/manual) | No | Stable | User only |
 
 dietary_exclusions: no_meat, no_beef, no_pork, no_fish, no_eggs, no_dairy, no_gluten, no_onion_garlic.
 allergy_exclusions: peanuts, tree_nuts, shellfish, dairy, eggs, soy, wheat, fish, sesame, mustard, celery, lupin, mollusks, sulfites (FDA/EU Big 14).
+
+meal_slots — configurable meal structure:
+
+  Default template (3 slots):
+    [ breakfast, lunch, dinner ]
+
+  Predefined slots (7 available):
+    morning_boost  · ☀ Morning boost   · ~07:00
+    breakfast      · ☀ Breakfast        · ~08:00
+    midday_bite    · 🌤 Mid-day bite    · ~11:00
+    lunch          · 🌤 Lunch           · ~13:00
+    evening_snack  · 🌇 Evening snack   · ~17:00
+    dinner         · 🌙 Dinner          · ~20:00
+    late_night     · 🌑 Late night      · ~22:00
+
+  Each slot: { id, label, icon, default_time }
+  User can add/remove/rename/reorder slots.
+  MealPlan and MealLog reference slots by id.
+
+plan_enabled defaults to false. plan_window defaults to day. plan_reactivity defaults to daily.
 
 New domains add their own domain-scoped facts to the same table.
 
