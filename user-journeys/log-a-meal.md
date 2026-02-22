@@ -159,3 +159,18 @@ Cross-day (midnight eating):
 
 Logging decay:
 → Plan-confirm path is one tap — survives decay. As patterns build, system can pre-fill from behavioral predictions even without a plan. Surface gets easier as the system knows more.
+
+⸻
+
+Part 3: Known Concerns
+
+1. Cold start is weak. No plan + no history = empty day view with blank slots. First-ever meal log has no pre-fills, no predictions. The user's first experience is the worst version of the product.
+
+2. Batch prose is underspecified. Can user type "had oats for breakfast, dal for lunch, skipped dinner" into one input? Multi-meal parsing is a significantly harder LLM task. Or does batch only support confirm/skip, with prose requiring the single composition surface?
+
+3. Navigation cost of [✎]. Each edit opens a full composition surface. Tweaking 3 meals = 3 round trips. On mobile, this may feel heavy for simple adjustments.
+
+4. Refinement overkill. Changing "1 bowl dal" to "200ml dal" doesn't need the three-section surface. Simple quantity edits should be inline on the day view, not a context switch.
+
+5. Day view assumes meal slots. "Breakfast, Lunch, Dinner" is a cultural pattern. Users with 6 small meals or OMAD see a structure that doesn't match their life. Slot model needs to flex.
+
