@@ -15,6 +15,8 @@ Does NOT call LLM directly — goes through svc-orchestra.
 
 ```bash
 cp .env.example .env   # fill in your keys
+python3 -m venv .venv
+source .venv/bin/activate
 pip install -e .
 uvicorn app.main:app --reload --port 8001
 ```

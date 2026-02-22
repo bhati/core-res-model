@@ -13,6 +13,8 @@ Resonic orchestrator service — workflows + LLM pipeline. FastAPI.
 
 ```bash
 cp .env.example .env   # fill in your keys
+python3 -m venv .venv
+source .venv/bin/activate
 pip install -e .
 uvicorn app.main:app --reload --port 8000
 ```
