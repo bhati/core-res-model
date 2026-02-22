@@ -100,3 +100,39 @@ Design rules:
 3. User input is flexible. Prose and quick-select coexist. Mode blends naturally.
 4. Conversation depth is bounded. System logs what it has after reasonable attempts rather than interrogating.
 
+⸻
+
+HP05b — Validation Gate
+
+When a composition produces a consequential artifact (goal, plan, config change), the structure passes through a three-tier validation before activation.
+
+Pass — artifact is safe and reasonable. Proceed.
+Warn — artifact has concerns but isn't dangerous. User can acknowledge and override. System logs the acknowledgment.
+Block — artifact violates hard policy. System redirects to alternatives. No override.
+
+How it manifests on the HP05a surface:
+- Pass: structure shows green. [✓ Confirm] enabled.
+- Warn: structure highlights flagged items. Assistant explains concern in middle section. User sees [Adjust] and [Keep, I understand].
+- Block: structure shows blocked items. Assistant explains why. Only [Suggest alternative] available — no proceed button.
+
+Validation is LLM-driven, not a static rule engine. The LLM reads policy + user context and judges. Each domain defines its own validation rules with severity levels.
+
+⸻
+
+Collapsed Model
+
+The original three modes (Prose → Confirm → Structured) collapse into two orthogonal dimensions:
+
+Dimension 1: Batch vs Single
+- Batch: user sees multiple items, acts in bulk (day view, plan overview)
+- Single: user composes one item (HP05a composition surface)
+
+Dimension 2: Prose vs Structured
+- Prose: user types natural language, LLM resolves
+- Structured: user directly searches, picks, enters values
+
+"Confirm" is not a separate mode — it's batch + pre-filled structure. One tap accepts what's already there.
+
+The middle section of HP05a adapts to the input method:
+- Prose → assistant responses, clarifications, quick-select
+- Structured → search results, recent items, quantity picker
