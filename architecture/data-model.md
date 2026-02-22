@@ -9,13 +9,17 @@ Base Entity Storage Pattern
 
 All base entities (Food, Recipe) follow the same two-table pattern:
 
-Global table — system-curated, shared, immutable by users. Canonical reference data. May be LLM-seeded and refined over time based on usage importance.
+Global table — system-curated catalog. Never directly referenced by user data. Serves as the upstream source that user records are forked from. May be LLM-seeded and refined over time based on usage importance.
 
-User table — user-scoped. Two modes:
+User table — user-scoped. The single referencing target for all artifacts and user data. Two modes:
 - Standalone: user-created entity with no global equivalent ("mom's rajma", "my protein shake")
-- Override: references a global entity, patches specific fields ("my version of paneer — different fat content")
+- Override: forked from a global entity, inherits all fields, patches specific overrides ("my version of paneer — different fat content"). An override with zero overrides is a thin pointer — a bookmark that inherits dynamically.
 
-Resolution: merge(global, user_overrides) → effective entity. Check user table first, fall back to global. Override mode stores only changed fields — like CSS inheritance.
+Referencing rule: all artifacts (MealPlan, MealLog, ShoppingList, etc.) reference user_food.id or user_recipe.id. Never global IDs. This gives one foreign key pattern, self-contained user data, and clean deletion/export.
+
+First-use flow: when a user logs or references a food for the first time, the system creates a user-scoped record forked from the global catalog (override mode, no overrides). From that point on, the user's record is the reference.
+
+Global updates flow through: override mode inherits dynamically from global. If global updates chicken breast nutrition, users see it — unless they've overridden that specific field.
 
 This pattern applies to all base entities across all domains.
 
