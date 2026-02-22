@@ -92,41 +92,7 @@ Interaction model: todo list.
 
 ⸻
 
-Wireframe: Morning (8am — mostly unlogged, plan-forward)
-
-  ┌──────────────────────────────────────────┐
-  │  ◀  Sat, Feb 22                    ▸     │
-  │                                [Select]  │
-  ├──────────────────────────────────────────┤
-  │                                          │
-  │  "Good morning. Here's your day."        │
-  │                                          │
-  │  ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─  │
-  │                                          │
-  │  ○  ☀ Breakfast · planned                │
-  │     Overnight oats + coffee              │
-  │     ~380 kcal                            │
-  │                                          │
-  │  ○  🌤 Lunch · planned                   │
-  │     Dal rice + salad                     │
-  │     ~520 kcal                            │
-  │                                          │
-  │  ○  🌙 Dinner · planned                  │
-  │     Paneer tikka + roti                  │
-  │     ~650 kcal                            │
-  │                                          │
-  │  ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─  │
-  │                                          │
-  │  Calories  ░░░░░░░░░░░░  0 / 1800       │
-  │  Protein   ░░░░░░░░░░░░  0 / 120g       │
-  │                                          │
-  │  + log something else                    │
-  │                                          │
-  └──────────────────────────────────────────┘
-
-⸻
-
-Wireframe: Midday (1pm — mixed states)
+Wireframe: Day View (midday — mixed states)
 
   ┌──────────────────────────────────────────┐
   │  ◀  Sat, Feb 22                    ▸     │
@@ -154,8 +120,8 @@ Wireframe: Midday (1pm — mixed states)
   │  Calories  ██████░░░░░░  902 / 1800     │
   │  Protein   █████░░░░░░░  68 / 120g      │
   │                                          │
-  │  + log something else                    │
-  │                                          │
+  ├──────────────────────────────────────────┤
+  │  Y ─── M ─── W ─── ◉D ─── +Add         │
   └──────────────────────────────────────────┘
 
   ○ = unlogged (planned/suggested)
@@ -163,53 +129,60 @@ Wireframe: Midday (1pm — mixed states)
   ⊘ = skipped
   ●●● = high confidence  ●●○ = medium  ●○○ = low
 
+  Swipe right on row → quick confirm (ate as planned)
+  Swipe left on row  → quick skip
+  Tap row            → zoom to meal card
+  ◀ ▸                → navigate between days
+  [Select]           → multi-select mode for batch
+
 ⸻
 
-Wireframe: Evening (9pm — review mode)
+Wireframe: Week View (slide to ◉W — meals at week scale)
 
   ┌──────────────────────────────────────────┐
-  │  ◀  Sat, Feb 22                    ▸     │
-  │                                [Select]  │
+  │  ◀  Week of Feb 17–23              ▸    │
+  │                                          │
   ├──────────────────────────────────────────┤
   │                                          │
-  │  "Solid day. Protein was a bit low —     │
-  │   consider a high-protein snack."        │
+  │  "Consistent Mon–Thu. Friday outlier."   │
   │                                          │
   │  ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─  │
   │                                          │
-  │  ◉  ☀ Breakfast · logged       ●●●      │
-  │     Overnight oats + coffee              │
-  │     382 kcal                             │
-  │                                          │
-  │  ◉  🌤 Lunch · logged          ●●○      │
-  │     Dal rice + salad                     │
-  │     ~520 kcal                            │
-  │                                          │
-  │  ◉  🌙 Dinner · logged         ●●●      │
-  │     Paneer tikka + roti + raita          │
-  │     685 kcal                             │
-  │                                          │
-  │  ◉  Snack · logged             ●○○      │
-  │     "some almonds"                       │
-  │     ~120 kcal                            │
+  │        Mo    Tu    We    Th    Fr   Sa   │
+  │  ☀    ◉oats ◉oats ◉oats ◉oats ◉eggs ○  │
+  │  🌤   ◉dal  ◉salad◉wrap ◉dal  ◉pizza○  │
+  │  🌙   ◉tikka◉soup ◉rice ◉pasta⚠burg ○  │
   │                                          │
   │  ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─  │
   │                                          │
-  │  Calories  █████████░░░  1707 / 1800    │
-  │  Protein   ███████░░░░░  98 / 120g      │
+  │  Meal routines:                          │
+  │  · Breakfast: oats 4/5 days             │
+  │  · Lunch: dal 2x — variety?             │
+  │  · Fri dinner: 800 kcal — outlier       │
   │                                          │
+  │  Adherence: 4/6 days on plan             │
+  │  Logged: 18/21 meals                     │
+  │                                          │
+  ├──────────────────────────────────────────┤
+  │  Y ─── M ─── ◉W ─── D ─── +Add         │
   └──────────────────────────────────────────┘
+
+  Tap any cell → zoom to that meal card
+  Tap day column → zoom to that day view
+  ◀ ▸ → navigate between weeks
 
 ⸻
 
-Wireframe: Meal zoom (tapped lunch)
+Wireframe: Meal Card (tapped lunch — HP05a structure section)
 
   ┌──────────────────────────────────────────┐
   │  ◀ Back to day                           │
   ├──────────────────────────────────────────┤
   │                                          │
-  │  🌤 Lunch · logged · ●●○                 │
-  │  "had dal rice and salad"                │
+  │  🌤 Lunch · Sat, Feb 22                  │
+  │  Status: logged · ●●○                    │
+  │  Source: prose_extracted                  │
+  │  raw: "had dal rice and salad"           │
   │                                          │
   │  ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─  │
   │                                          │
@@ -217,8 +190,10 @@ Wireframe: Meal zoom (tapped lunch)
   │   Rice         1 serving    ~260 kcal    │
   │   Salad        1 serving    ~80 kcal     │
   │                                          │
+  │  ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─  │
+  │                                          │
   │   Total                     ~520 kcal    │
-  │   Protein  18g · Carbs 72g · Fat 12g    │
+  │   Protein 18g · Carbs 72g · Fat 12g     │
   │                                          │
   │  ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─  │
   │                                          │
@@ -228,22 +203,28 @@ Wireframe: Meal zoom (tapped lunch)
   │                                          │
   └──────────────────────────────────────────┘
 
-  For an unlogged planned slot, action pills would be:
+  For an unlogged planned slot, pills would be:
   [✓ Ate this]  [✎ Had something else]  [✗ Skip]
+
+  Tapping [✎ Had something else] or [Edit items] opens the
+  full HP05a composition surface (structure + assistant + input).
+  The meal card IS the structure section of HP05a — it becomes
+  the top section, with assistant and input appearing below.
 
 ⸻
 
-Zoom Level Map
+Zoom Slider
 
-  Meal detail ◂── Day View ──▸ Week ──▸ Month ──▸ Year
-  (tap slot)      (home)       (pinch out / navigate)
+  Y ─── M ─── W ─── ◉D ─── +Add
 
-  Level   Content fill           Interaction
-  Meal    Item-level nutrition   Action pills (confirm/edit/skip/refine)
-  Day     Daily summary          Swipe confirm/skip, select mode, tap to zoom
-  Week    MacroReview + MealReview   Adjust plan, revise goal
-  Month   Monthly insights       Review goal trajectory
-  Year    Annual trends          Long-term view
+  Persistent bottom bar. Current level highlighted with ◉.
+  Slide or tap to change zoom level. +Add opens HP05a composition.
 
-Weekly Review is not a separate journey — it's the Week zoom level of this surface.
+  Level   Primary content            Content fill
+  Meal    Items, portions, macros    (none — this is the detail)
+  Day     Meal slots for one day     Daily summary
+  Week    Meal grid (7 × slots)     Meal routines, adherence
+  Month   Condensed meal patterns    Dietary trends
+  Year    Meal routine evolution     Long-term habits
 
+  Weekly Review is not a separate journey — it's the ◉W zoom level.
