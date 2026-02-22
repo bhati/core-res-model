@@ -74,3 +74,176 @@ Navigation:
 18. Swipe between days? Calendar picker? How does the user access previous days?
 19. Tap on a logged meal → what happens? View detail? Open for refinement? Nothing?
 20. Where does "start a chat" live relative to Day View?
+
+⸻
+
+Part 2: Proposal
+
+Decision: Option D — Living Document.
+
+The Day View is a continuously evolving record of the day. Solid structure, dynamic content. Everything is tappable (zoom in), nothing is directly actionable on the overview. Actions surface in zoomed views.
+
+Interaction model: todo list.
+- Tap row → zoom into meal detail (action pills surface here)
+- Swipe right → quick confirm (ate as planned)
+- Swipe left → quick skip
+- [Select] mode → multi-select for batch confirm/skip
+- Zoom out → week / month / year
+
+⸻
+
+Wireframe: Morning (8am — mostly unlogged, plan-forward)
+
+  ┌──────────────────────────────────────────┐
+  │  ◀  Sat, Feb 22                    ▸     │
+  │                                [Select]  │
+  ├──────────────────────────────────────────┤
+  │                                          │
+  │  "Good morning. Here's your day."        │
+  │                                          │
+  │  ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─  │
+  │                                          │
+  │  ○  ☀ Breakfast · planned                │
+  │     Overnight oats + coffee              │
+  │     ~380 kcal                            │
+  │                                          │
+  │  ○  🌤 Lunch · planned                   │
+  │     Dal rice + salad                     │
+  │     ~520 kcal                            │
+  │                                          │
+  │  ○  🌙 Dinner · planned                  │
+  │     Paneer tikka + roti                  │
+  │     ~650 kcal                            │
+  │                                          │
+  │  ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─  │
+  │                                          │
+  │  Calories  ░░░░░░░░░░░░  0 / 1800       │
+  │  Protein   ░░░░░░░░░░░░  0 / 120g       │
+  │                                          │
+  │  + log something else                    │
+  │                                          │
+  └──────────────────────────────────────────┘
+
+⸻
+
+Wireframe: Midday (1pm — mixed states)
+
+  ┌──────────────────────────────────────────┐
+  │  ◀  Sat, Feb 22                    ▸     │
+  │                                [Select]  │
+  ├──────────────────────────────────────────┤
+  │                                          │
+  │  "On track — 900 of 1800 kcal so far."  │
+  │                                          │
+  │  ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─  │
+  │                                          │
+  │  ◉  ☀ Breakfast · logged       ●●●      │
+  │     Overnight oats + coffee              │
+  │     382 kcal                             │
+  │                                          │
+  │  ◉  🌤 Lunch · logged          ●●○      │
+  │     "had dal rice and salad"             │
+  │     ~520 kcal                            │
+  │                                          │
+  │  ○  🌙 Dinner · planned                  │
+  │     Paneer tikka + roti                  │
+  │     ~650 kcal                            │
+  │                                          │
+  │  ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─  │
+  │                                          │
+  │  Calories  ██████░░░░░░  902 / 1800     │
+  │  Protein   █████░░░░░░░  68 / 120g      │
+  │                                          │
+  │  + log something else                    │
+  │                                          │
+  └──────────────────────────────────────────┘
+
+  ○ = unlogged (planned/suggested)
+  ◉ = logged
+  ⊘ = skipped
+  ●●● = high confidence  ●●○ = medium  ●○○ = low
+
+⸻
+
+Wireframe: Evening (9pm — review mode)
+
+  ┌──────────────────────────────────────────┐
+  │  ◀  Sat, Feb 22                    ▸     │
+  │                                [Select]  │
+  ├──────────────────────────────────────────┤
+  │                                          │
+  │  "Solid day. Protein was a bit low —     │
+  │   consider a high-protein snack."        │
+  │                                          │
+  │  ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─  │
+  │                                          │
+  │  ◉  ☀ Breakfast · logged       ●●●      │
+  │     Overnight oats + coffee              │
+  │     382 kcal                             │
+  │                                          │
+  │  ◉  🌤 Lunch · logged          ●●○      │
+  │     Dal rice + salad                     │
+  │     ~520 kcal                            │
+  │                                          │
+  │  ◉  🌙 Dinner · logged         ●●●      │
+  │     Paneer tikka + roti + raita          │
+  │     685 kcal                             │
+  │                                          │
+  │  ◉  Snack · logged             ●○○      │
+  │     "some almonds"                       │
+  │     ~120 kcal                            │
+  │                                          │
+  │  ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─  │
+  │                                          │
+  │  Calories  █████████░░░  1707 / 1800    │
+  │  Protein   ███████░░░░░  98 / 120g      │
+  │                                          │
+  └──────────────────────────────────────────┘
+
+⸻
+
+Wireframe: Meal zoom (tapped lunch)
+
+  ┌──────────────────────────────────────────┐
+  │  ◀ Back to day                           │
+  ├──────────────────────────────────────────┤
+  │                                          │
+  │  🌤 Lunch · logged · ●●○                 │
+  │  "had dal rice and salad"                │
+  │                                          │
+  │  ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─  │
+  │                                          │
+  │   Dal          1 serving    ~180 kcal    │
+  │   Rice         1 serving    ~260 kcal    │
+  │   Salad        1 serving    ~80 kcal     │
+  │                                          │
+  │   Total                     ~520 kcal    │
+  │   Protein  18g · Carbs 72g · Fat 12g    │
+  │                                          │
+  │  ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─  │
+  │                                          │
+  │   [Refine portions]                      │
+  │   [Edit items]                           │
+  │   [Delete log]                           │
+  │                                          │
+  └──────────────────────────────────────────┘
+
+  For an unlogged planned slot, action pills would be:
+  [✓ Ate this]  [✎ Had something else]  [✗ Skip]
+
+⸻
+
+Zoom Level Map
+
+  Meal detail ◂── Day View ──▸ Week ──▸ Month ──▸ Year
+  (tap slot)      (home)       (pinch out / navigate)
+
+  Level   Content fill           Interaction
+  Meal    Item-level nutrition   Action pills (confirm/edit/skip/refine)
+  Day     Daily summary          Swipe confirm/skip, select mode, tap to zoom
+  Week    MacroReview + MealReview   Adjust plan, revise goal
+  Month   Monthly insights       Review goal trajectory
+  Year    Annual trends          Long-term view
+
+Weekly Review is not a separate journey — it's the Week zoom level of this surface.
+
