@@ -100,6 +100,30 @@ Design rules:
 3. User input is flexible. Prose and quick-select coexist. Mode blends naturally.
 4. Conversation depth is bounded. System logs what it has after reasonable attempts rather than interrogating.
 
+Composition call pattern (LLM contract):
+
+Every turn in a composition surface is a structured LLM call. The LLM returns:
+
+  { status, structure, response, question, options }
+
+  status:    needs_input | ready | blocked
+  structure: the artifact being built (current state)
+  response:  assistant prose for the middle section
+  question:  what to ask next (null if ready)
+  options:   quick-select choices (null if freeform)
+
+Code reads status and enforces boundaries:
+  needs_input → show question in assistant, keep user input active, hide [✓ Confirm]
+  ready       → show [✓ Confirm] in structure section
+  blocked     → show block message (HP05b), hide [✓ Confirm]
+
+Code can override LLM status:
+  - Tag-specific rules (exploratory + statement exists → force ready)
+  - Missing required context (medical + no conditions → force needs_input)
+  - Turn limit exceeded → force ready with best-effort structure
+
+Prompting sets intent. Structured output makes it inspectable. Code enforces invariants.
+
 ⸻
 
 HP05b — Validation Gate

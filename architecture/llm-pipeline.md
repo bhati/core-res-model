@@ -128,5 +128,9 @@ Tools like Explain and analytical discussions (ReviewPeriod, DetectPatterns) whe
 Type           | Trigger          | Output      | State Mutation | HP04 Exposure
 Tool judgment  | User action      | Structured  | Yes            | Low (bounded)
 Content fill   | Render / event   | Prose       | No             | None
+Composition    | HP05a surface    | Structured  | Yes (on ready) | Managed (HP05a anchors)
 Escape hatch   | Ambiguity        | Structured  | Yes (via tool) | High (both)
 Conversational | User initiates   | Prose       | Possible       | Medium (drift)
+
+Composition calls are multi-turn. Each turn returns { status, structure, response, question, options }. Code enforces completion boundaries (turn limits, required-field rules). See HP05a for the full contract.
+
