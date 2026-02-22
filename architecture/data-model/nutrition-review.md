@@ -1,8 +1,6 @@
-Reviews
+NutritionReview
 
-Two review types for the nutrition domain. Both exist independently at weekly and monthly scopes (weeks don't compose into months — they're separate time containers that each scan raw MealLogs).
-
-Additional review types (CulinaryReview, etc.) can be added later as the product matures.
+A family of review artifacts for the nutrition domain. Currently two types; can evolve as the product matures (e.g., CulinaryReview for food diversity). Both exist independently at weekly and monthly scopes (weeks don't compose into months — they're separate time containers that each scan raw MealLogs).
 
 ⸻
 

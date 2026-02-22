@@ -69,7 +69,7 @@ Artifacts:
 - goal.md — Goal (tagged commitment, one per domain)
 - meal-plan.md — MealPlan (temporal arrangement of intended meals)
 - meal-log.md — MealLog (load-bearing artifact — record of what was eaten)
-- review.md — Review (structured analysis output)
+- nutrition-review.md — NutritionReview (MacroReview + MealReview, extensible)
 - shopping-list.md — ShoppingList (derived from MealPlan)
 - cooking-plan.md — CookingPlan (derived from MealPlan + Recipes)
 
