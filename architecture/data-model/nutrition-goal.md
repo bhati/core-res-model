@@ -12,9 +12,11 @@ Schema
 - user_id
 - domain (nutrition)
 - statement (prose: "Manage diabetes through diet, lose weight, eat better")
-- tags: { [primary]: [secondary, ...], ... }
-  Primary tags activate policy sets. Secondary tags give granularity.
-  e.g., { medical: [diabetes_management, medication_aware_diet], body_composition: [weight_loss, caloric_deficit], behavioral: [mindful_eating] }
+- primary_tags: [medical, body_composition, behavioral, ...]
+  Primary tags activate policy sets. Flat array.
+- secondary_tags: [primary.secondary, ...]
+  Dot-notation: primary tag prefix + secondary tag. Flat array.
+  e.g., [medical.diabetes_management, medical.medication_aware_diet, body_composition.weight_loss, body_composition.caloric_deficit, behavioral.mindful_eating]
 - targets: [{ metric, value, unit }] — optional, LLM-derived from statement + assessment
   e.g., [{ calorie_target, 1800, kcal/day }, { protein_target, 130, g/day }]
 - config_effects: [{ key, value }] — LLM determines from statement + assessment
