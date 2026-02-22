@@ -227,22 +227,26 @@ Memories: Goal statement echoes as a cross-domain memory in user context ("user 
 
 MealPlan
 
-A temporal arrangement of intended meals.
+A temporal arrangement of intended meals. Implicitly serves the active Goal (no goal_ref needed — one Goal per domain).
 
 - id
 - user_id
 - period (day / week)
 - start_date, end_date
-- goal_ref (which Goal this serves)
-- config_snapshot: { calorie_target, macro_split, dietary_type, meal_count, allergens }
+- context_snapshot: {
+    config: { calorie_target, macro_split, dietary_type, meal_count, allergens },
+    circumstances: [traveling, fasting, ...],
+    key_memories: [avoids_eggs, doesnt_cook_weekdays, ...],
+    goal_tags: { medical: [...], body_composition: [...] }
+  }
 - days: [
     {
       date,
       meals: [
         {
           meal_type (breakfast / lunch / dinner / snack),
-          items: [{ food_ref, recipe_ref, quantity, unit, preparation }],
-          computed_nutrition: { kcal, protein, carbs, fat }
+          items: [{ user_food_ref, user_recipe_ref, display_name, quantity, unit, preparation }],
+          computed_nutrition: { kcal, protein, carbs, fat } — copied at build time
         }
       ]
     }
@@ -250,11 +254,14 @@ A temporal arrangement of intended meals.
 - status (active / superseded)
 - created_at, superseded_at, superseded_by
 
+Context snapshot enables staleness detection: "Plan was built for travel. You're home now — rebuild?"
+Propagation: copy at build. User food update → trigger recomputation event (surfaced). Safety resolves live.
+
 ⸻
 
 MealLog
 
-A record of what was actually eaten. Immutable.
+A record of what was actually eaten. Immutable. One per eating occasion.
 
 - id
 - user_id
@@ -262,42 +269,45 @@ A record of what was actually eaten. Immutable.
 - meal_type (breakfast / lunch / dinner / snack)
 - items: [
     {
-      food_ref,                    ← identity reference
-      food_name,                    ← cloned (snapshot)
+      user_food_ref,                  ← identity reference (user-local)
+      display_name,                    ← copied (snapshot)
       quantity, unit, preparation,
-      computed_nutrition: { kcal, protein, carbs, fat }  ← cloned at log time
+      computed_nutrition: { kcal, protein, carbs, fat }  ← copied at log time
     }
   ]
-- plan_ref (if a plan was active — links to planned meal for comparison)
+- plan_ref (if plan active — links to planned meal for comparison)
 - context (optional prose: "ate out", "craving", "cooked at home")
-- source (manual_entry / quick_capture / structured_input)
+- source (manual_entry / quick_capture / structured_input / prose_extracted)
+
+Immutable. Never updated. Never propagated. Safety flags resolve live from user_food_ref.
 
 ⸻
 
 Review
 
-A structured analysis output. Snapshot.
+A structured analysis output. Snapshot in time.
 
 - id
 - user_id
 - period: { start_date, end_date }
 - type (summary / comparison / pattern)
-- goal_ref (benchmarked against which Goal)
 - metrics_snapshot (the report data at review time — numerical)
 - narrative (LLM-generated prose — the observation layer)
 - observations: [{ content, type, evidence_count }]
 - created_at
 
+Immutable once created. Captures what was true and what the LLM assessed at that point.
+
 ⸻
 
 ShoppingList
 
-Derived from an active MealPlan.
+Derived from an active MealPlan. Recomputes if plan recomputes.
 
 - id
 - user_id
 - plan_ref
-- items: [{ food_ref, food_name, total_quantity, unit, category }]
+- items: [{ user_food_ref, display_name, total_quantity, unit, category }]
 - categories (grouped: produce, protein, dairy, pantry, etc.)
 - created_at
 
@@ -305,7 +315,7 @@ Derived from an active MealPlan.
 
 CookingPlan
 
-A preparation strategy derived from a MealPlan.
+A preparation strategy derived from a MealPlan + Recipes. Recomputes if plan recomputes.
 
 - id
 - user_id
@@ -313,7 +323,7 @@ A preparation strategy derived from a MealPlan.
 - prep_sessions: [
     {
       date,
-      tasks: [{ recipe_ref, recipe_name, prep_steps, batch_quantity }]
+      tasks: [{ user_recipe_ref, recipe_name, prep_steps, batch_quantity }]
     }
   ]
 - assembly_guide (how to assemble meals from prepped components)
@@ -323,7 +333,7 @@ A preparation strategy derived from a MealPlan.
 
 Domain Context
 
-Configuration (structured operational parameters)
+Configuration (structured operational parameters — primarily set by Goal side effects)
 - user_id
 - dietary_type (omnivore / vegetarian / vegan / pescatarian / ...)
 - calorie_target (kcal/day)
@@ -344,6 +354,8 @@ Memories (durable domain-scoped truths)
 - created_at
 - confidence (for observed memories)
 
+Memories are tagged for retrieval by the context composer. Tags determine which memories are scoped into which surfaces (HP03).
+
 ⸻
 
 Events (immutable log)
@@ -351,10 +363,12 @@ Events (immutable log)
 - id
 - user_id
 - domain (nutrition)
-- type (meal_logged / plan_created / plan_modified / target_set / target_revised / review_completed / pattern_detected / shopping_list_generated / exception_declared / signal_reported)
+- type (meal_logged / plan_created / plan_modified / goal_set / goal_revised / review_completed / pattern_detected / shopping_list_generated / cooking_plan_generated / food_updated / exception_declared / signal_reported)
 - timestamp
 - payload (type-specific structured data)
 - artifact_ref (which artifact was created/modified)
+
+Events feed the report engine (HP02). Event-driven computation triggers report recomputation.
 
 ⸻
 
@@ -369,15 +383,15 @@ Attributes
 Traits
 - user_id
 - traits: [{ content, source (declared / observed) }]
-- engagement_level (browsing / goal_setting / committed) — computed metric
+- engagement_level (browsing / goal_setting / committed) — computed metric (HP02)
 
 Circumstances
 - user_id
-- active_circumstances: [{ type, status (upcoming / active / resolving), start_date, expected_end }]
+- active_circumstances: [{ type, description, status (upcoming / active / resolving), start_date, expected_end }]
 
-Intents
+Intents (created as Goal side effects, cross-domain readable)
 - user_id
-- active_intents: [{ category, sub_intent, goal_ref, domain }]
+- active_intents: [{ primary_tag, secondary_tags, goal_ref, domain }]
 
 User Configuration
 - user_id
@@ -387,3 +401,4 @@ User Configuration
 - tone (direct / gentle)
 - planning_rigidity (precise / loose)
 - autonomy_vs_guidance
+
