@@ -9,6 +9,13 @@ Resonic orchestrator service — workflows + LLM pipeline. FastAPI.
 - LLM pipeline (context assembly → prompt → LLM → structured output)
 - Side effect coordination (Goal → config + memories)
 
+## Infrastructure
+
+- **Auth** — JWT validation via Supabase (`auth.py`)
+- **Geolocation** — IP2Location for timezone/city context (`services/geolocation.py`)
+- **SSE streaming** — Server-Sent Event formatting (`streaming/sse.py`)
+- **Event recording** — Fire-and-forget events for async processing (`events/recorder.py`)
+
 ## Run
 
 ```bash

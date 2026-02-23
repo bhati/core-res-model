@@ -1,8 +1,33 @@
+# Python
+venv/
+.venv/
 __pycache__/
 *.pyc
-.env
+*.pyo
+*.pyd
 *.egg-info/
+*.egg
 dist/
 build/
-.venv/
+*.whl
+
+# Environment
+.env
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Testing / Coverage
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
 .ruff_cache/
