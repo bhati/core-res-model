@@ -1,6 +1,6 @@
 # Functions — Core Eating Loop PoC
 
-Each function composes atomic capabilities into one call.
+Seven functions. Two entities. Each function composes atomic capabilities.
 
 ---
 
@@ -31,12 +31,13 @@ ASSUME_FOOD(
   input:    food_name (from capture),
   context:  food_items (user vocab) + food_priors
 )
-  -> output:      { food_ref, identity }
+  -> output:      { best: { identity, food_ref, confidence },
+                    alternates: [{ identity, food_ref, confidence }] }
   -> confidence:  0.0–1.0 (prior only → low, vocab match → high)
-  -> commentary:  "chai → milk tea" or "chai → new food, first time"
+  -> commentary:  "chai → ginger tea (also: milk tea, green tea)"
 ```
 
-Matches existing food_item or **creates a new one immediately.** The food_item is user-visible from the moment it's assumed. Sets meal_item status to `assumed`.
+Matches existing food_item or **creates a new one immediately.** User-visible from moment one. Returns best guess + alternates. Both persisted on meal_item. Status set to `assumed`.
 
 ---
 
@@ -49,12 +50,13 @@ ASSUME_MEAL_OCCASION(
   input:    [meal_items from this event] + timestamp,
   context:  meal_items (occasion history) + occasion_priors
 )
-  -> output:      { occasion_label, time_window }
+  -> output:      { best: { label, confidence },
+                    alternates: [{ label, confidence }] }
   -> confidence:  0.0–1.0 (prior only → low, repeated pattern → high)
-  -> commentary:  "Lunch — matches your usual 1:30pm slot"
+  -> commentary:  "Lunch (also: late breakfast)"
 ```
 
-One occasion per meal_event_id. Sets meal_item status to `assumed`.
+One occasion per meal_event_id. Best + alternates persisted. Status set to `assumed`.
 
 ---
 
@@ -64,15 +66,20 @@ One occasion per meal_event_id. Sets meal_item status to `assumed`.
 (learn_food, learn_occasion) =>
 
 RESOLVE_ASSUMPTION(
-  input:    user action (accept | correct | ignore),
+  input:    user action (accept | correct | pick_alternate) + value,
   context:  meal_item being resolved
 )
   -> output:      updated meal_item suggest columns
-  -> confidence:  accepted → medium, corrected → highest, ignored → unchanged
-  -> commentary:  "Updated: chai = ginger tea" or "Confirmed: Lunch"
+  -> confidence:  accepted → medium, corrected → highest, pick_alternate → high
+  -> commentary:  "Updated: chai = milk tea" or "Confirmed: Lunch"
 ```
 
-Updates meal_item status to `accepted` or `corrected`. Corrections trigger LEARN_FOOD.
+Three user actions:
+- **accept**: status → accepted, best stays.
+- **pick_alternate**: status → corrected, alternate becomes best. One tap, no typing.
+- **correct (free text)**: status → corrected, new value. Strongest signal.
+
+Corrections trigger LEARN_FOOD.
 
 ---
 
@@ -90,12 +97,12 @@ LEARN_FOOD(
   -> commentary:  "merged 'morning tea' into 'chai', default qty → 1 cup"
 ```
 
-Operates ON food_items, not meal_items. Reconciliation, not creation:
-- **Merge** duplicates (detected from patterns)
-- **Register aliases** (from corrections)
+Operates ON food_items, not meal_items. Reconciliation:
+- **Merge** duplicates detected from patterns
+- **Register aliases** from corrections
 - **Update defaults** (quantity, unit from mode)
 - **Build co-occurrences** (cross meal_event patterns)
-- **Prune** unused prior food_items
+- **Prune** unused or inactive food_items
 
 Runs after RESOLVE_ASSUMPTION and REEVALUATE_ASSUMPTIONS.
 
@@ -115,7 +122,7 @@ REEVALUATE_ASSUMPTIONS(
   -> commentary:  "5 breakfast assumptions promoted to inferred"
 ```
 
-Background sweep. Promotes assumed → inferred when pattern evidence supports it. Triggers LEARN_FOOD after promotion.
+Background sweep. Can also swap best ↔ alternate when pattern evidence supports a different choice. Triggers LEARN_FOOD after promotion.
 
 ---
 
@@ -133,20 +140,20 @@ SUGGEST_EATING_DAY(
   -> commentary:  "Solid breakfast week — 5th day of chai-paratha."
 ```
 
-Read-only presentation. Never stores. Computed at render time.
+Read-only presentation. Computed at render time. Weights by status: corrected > accepted > inferred > assumed.
 
 ---
 
 ## Summary
 
 ```
-CAPTURE_MEAL_ITEMS(prose, priors)               creates meal_items
-ASSUME_FOOD(food_name, vocab+priors)            creates/matches food_item, updates meal_item
-ASSUME_MEAL_OCCASION(items+time, history)       updates meal_item
-RESOLVE_ASSUMPTION(user_action, meal_item)      updates meal_item → triggers LEARN_FOOD
-LEARN_FOOD(food_items, meal_item history)        reconciles food_items
-REEVALUATE_ASSUMPTIONS(assumed items, corpus)   promotes assumed → inferred → triggers LEARN_FOOD
-SUGGEST_EATING_DAY(day_context, all_data)       presentation (read-only)
+CAPTURE_MEAL_ITEMS(prose, priors)             → creates meal_items
+ASSUME_FOOD(name, vocab+priors)               → creates/matches food_item + alternates
+ASSUME_MEAL_OCCASION(items+time, history)     → suggests occasion + alternates
+RESOLVE_ASSUMPTION(action, meal_item)         → accept / pick alternate / correct
+LEARN_FOOD(food_items, meal_item history)      → reconcile food vocabulary
+REEVALUATE_ASSUMPTIONS(assumed, corpus)       → promote assumed → inferred
+SUGGEST_EATING_DAY(day_context, all_data)     → presentation (read-only)
 ```
 
-Seven functions. Two entities.
+Seven functions. Two entities. Alternates persisted for lazy resolution and REEVALUATE.

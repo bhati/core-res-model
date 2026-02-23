@@ -12,13 +12,13 @@ USER INPUT 1: log_msg
                 │
                 ▼
         CAPTURE_MEAL_ITEMS
-        (parse_foods, estimate_quantity)
                 │
                 │ creates meal_items (capture columns)
                 │
                 ├──▶ ASSUME_FOOD
-                │    match/create food_item
-                │    meal_item.food_status = assumed
+                │    reads food_items (user vocab) + priors
+                │    creates/matches food_item
+                │    returns best + alternates
                 │         │
                 │         ▼
                 │    ┌──────────────────────┐
@@ -28,79 +28,81 @@ USER INPUT 1: log_msg
                 │    └──────────────────────┘
                 │
                 ├──▶ ASSUME_MEAL_OCCASION
-                │    meal_item.occasion_status = assumed
+                │    reads occasion history + priors
+                │    returns best + alternates
                 │
                 ▼
    ┌──────────────────────────────────────────────────────┐
    │ 🗄 MEAL_ITEM                                        │
    │                                                      │
-   │  CAPTURE (immutable)      SUGGEST (mutable)          │
-   │  ─────────────────        ──────────────────         │
-   │  food_name: "chai"        food: milk tea (assumed)   │
-   │  quantity: 1              occasion: lunch (assumed)  │
-   │  food_name: "paratha"     food: aloo (assumed)       │
-   │  quantity: 1              occasion: lunch (assumed)  │
-   └──────────────────────────────────┬───────────────────┘
-                                      │
-                                      │ shown to user
-                                      ▼
-                              ┌──────────────────────┐
-                              │ User sees:           │
-                              │ ✓ chai(1), paratha(1)│
-                              │ 🌤 Lunch?            │
-                              │ chai → milk tea       │
-                              │ paratha → aloo        │
-                              │ [✓ ok] [✎ fix]       │
-                              └──────────┬───────────┘
-                                         │
-                                         │
-USER INPUT 2: clarification              │
-                                         │
-clarification ◂──────────────────────────┘
+   │  CAPTURE              SUGGEST                        │
+   │  ──────               ──────                         │
+   │  chai (1)             food: ginger tea (assumed)     │
+   │                       alts: [milk, masala, green]    │
+   │  paratha (1)          food: aloo (assumed)           │
+   │                       alts: [stuffed, plain]         │
+   │                                                      │
+   │  occasion: lunch (assumed), alts: [late breakfast]   │
+   └───────────────────────┬──────────────────────────────┘
+                           │
+                           │ shown to user
+                           ▼
+                   ┌───────────────────────┐
+                   │ 📱 Log Confirmation   │
+                   │                       │
+                   │ ✓ chai(1), paratha(1)  │
+                   │ 🌤 Lunch?              │
+                   │ chai → ginger tea      │
+                   │  also: milk · masala   │
+                   │ [✓ ok] [milk tea] [✎]  │
+                   └───────────┬───────────┘
+                               │
+
+USER INPUT 2: clarification    │
+                               │
+  ┌────────────────────────────┘
   │
-  │  accept / correct / ignore
+  ├── accept ──▶ RESOLVE_ASSUMPTION → status: accepted
+  │                   │
+  │                   └──▶ LEARN_FOOD (reconcile food_items)
   │
-  ▼
-  RESOLVE_ASSUMPTION
+  ├── pick alternate ──▶ RESOLVE_ASSUMPTION → status: corrected
+  │   (one tap)              alt becomes best
+  │                          │
+  │                          └──▶ LEARN_FOOD (reconcile)
   │
-  ├── accept ──▶ meal_item status → accepted
+  ├── correct (type) ──▶ RESOLVE_ASSUMPTION → status: corrected
+  │   (free text)            new value
+  │                          │
+  │                          └──▶ LEARN_FOOD (reconcile + new food_item?)
   │
-  ├── correct ──▶ meal_item status → corrected
-  │               meal_item.corrected_to = new value
-  │
-  └── ignore ──▶ status stays assumed
-  │
-  │  (if accepted or corrected)
-  ▼
-  LEARN_FOOD (reconciliation)
-  │
-  ├── merge duplicates in food_items
-  ├── register aliases from corrections
-  ├── update defaults (qty, co-occurrences)
-  └── prune unused priors
+  └── ignore ──▶ nothing. stays assumed. revisited later.
 
 
-BACKGROUND SWEEP (periodic):
+BACKGROUND:
 
   REEVALUATE_ASSUMPTIONS
   │
   │  walks meal_items WHERE status = 'assumed'
   │  compares against accepted + corrected + inferred corpus
   │
-  ├── pattern fits ──▶ status: assumed → inferred
-  └── triggers LEARN_FOOD (reconcile with new data)
+  ├── confirms best ────▶ promotes: assumed → inferred
+  ├── swaps best ↔ alt ──▶ promotes: assumed → inferred (with new best)
+  └── triggers LEARN_FOOD (reconcile with promoted data)
 
 
-PRESENTATION (user opens day view):
+PRESENTATION:
 
   SUGGEST_EATING_DAY(day_context, meal_items, food_items)
   │
+  │  weights by status: corrected > accepted > inferred > assumed
+  │
   ▼
   📋 DAY VIEW (computed, never stored)
-    logged:      ☀ Breakfast — chai, paratha
-    expected:    🌙 Dinner ~9pm
-    gap:         🌤 Lunch — didn't show up
-    reflection:  "Solid morning, lunch skipped."
+    logged:       ☀ Breakfast — chai (ginger tea), paratha
+    expected:     🌙 Dinner ~9pm
+    gap:          🌤 Lunch — didn't show up
+    reflection:   "Solid morning, lunch skipped."
 ```
 
 ---
@@ -108,58 +110,55 @@ PRESENTATION (user opens day view):
 ## Status Lifecycle
 
 ```
- ASSUME_FOOD / ASSUME_MEAL_OCCASION
-               │
-               ▼
-           ┌────────┐
-           │assumed │─────────────────────────────────┐
-           └───┬────┘                                 │
-               │                                      │
-               │ REEVALUATE_ASSUMPTIONS               │ RESOLVE_ASSUMPTION
-               │ (pattern evidence)                   │ (user action)
-               ▼                                      ▼
-           ┌────────┐                          ┌──────────┐
-           │inferred│                          │ accepted │
-           └────────┘                          │ corrected│
-                                               └──────────┘
-
-  corrected > accepted > inferred > assumed
-    (user)     (user)    (pattern)   (guess)
+  ASSUME_FOOD / ASSUME_MEAL_OCCASION
+                │
+                ▼
+            ┌────────┐
+            │assumed │──────────────────────────────────────┐
+            └───┬────┘                                     │
+                │                                          │
+                │ REEVALUATE              RESOLVE           │
+                │ (pattern)              (user action)      │
+                ▼                         ▼                 │
+            ┌────────┐             ┌──────────┐            │
+            │inferred│             │ accepted │            │
+            └────────┘             │ corrected│            │
+                                   └──────────┘            │
+                                                           │
+  user can also resolve by picking an alternate ───────────┘
+  from persisted alternates on old logs (lazy resolution)
 ```
 
 ---
 
-## Self-Reinforcement
-
-Three mechanisms, all operating on the same two entities:
+## Four Feedback Loops
 
 ```
-① CORRECTIONS (strongest, immediate)
-   user corrects → RESOLVE_ASSUMPTION → meal_item updated
-                 → LEARN_FOOD → food_item refined
+Loop 1: CAPTURE → ASSUME → meal_items → next ASSUME reads richer history
+        (every log improves the next log's suggestions)
 
-② ACCEPTANCES (medium, passive)
-   user accepts → RESOLVE_ASSUMPTION → meal_item confirmed
-                → LEARN_FOOD (weaker signal)
+Loop 2: RESOLVE → LEARN_FOOD → food_items refined → ASSUME reads better vocab
+        (user corrections sharpen food vocabulary)
 
-③ PATTERN ACCUMULATION (grows over time, no user action)
-   meal_items accumulate → REEVALUATE_ASSUMPTIONS
-   → assumed items promoted to inferred
-   → LEARN_FOOD → food_items refined
+Loop 3: REEVALUATE → promotes assumed → inferred → LEARN_FOOD reconciles
+        (background sweep tightens everything without user effort)
+
+Loop 4: alternates accumulate → variant patterns emerge → seed for global catalog
+        (data asset grows for V2 multi-user sharing)
 ```
 
 ---
 
-## Functions ↔ Entities Map
+## Functions × Entities
 
 | Function | Reads | Creates | Updates | Trigger |
 |---|---|---|---|---|
 | CAPTURE_MEAL_ITEMS | — | meal_item | — | log_msg |
-| ASSUME_FOOD | food_item, priors | food_item (if new) | meal_item (suggest) | log_msg |
-| ASSUME_MEAL_OCCASION | meal_items (history), priors | — | meal_item (suggest) | log_msg |
-| RESOLVE_ASSUMPTION | meal_item | — | meal_item (status) | user action |
+| ASSUME_FOOD | food_item, priors | food_item (if new) | meal_item (suggest + alts) | log_msg |
+| ASSUME_MEAL_OCCASION | meal_items (history), priors | — | meal_item (suggest + alts) | log_msg |
+| RESOLVE_ASSUMPTION | meal_item | — | meal_item (status) | user: accept/pick/correct |
 | LEARN_FOOD | meal_items (history) | — | food_item (reconcile) | after RESOLVE + REEVALUATE |
-| REEVALUATE_ASSUMPTIONS | meal_items (corpus) | — | meal_item (status) | background sweep |
+| REEVALUATE_ASSUMPTIONS | meal_items (corpus) | — | meal_item (promote + swap) | background sweep |
 | SUGGEST_EATING_DAY | meal_items, food_items | — | nothing | user opens day view |
 
 ---
@@ -167,9 +166,9 @@ Three mechanisms, all operating on the same two entities:
 ## Convergence
 
 ```
-Day 1:   mostly assumed → noisy food_items, generic day view
+Day 1:   all assumed → noisy, alternates everywhere
 Day 3:   some accepted/corrected → LEARN_FOOD merges, aliases form
-Day 5:   REEVALUATE promotes → assumed → inferred, food vocab solid
-Day 7:   mostly inferred+accepted → SUGGEST_EATING_DAY is accurate
-         corrections approach zero
+Day 5:   REEVALUATE promotes → food vocab solid, alternates narrow
+Day 7:   mostly inferred+accepted → day view is accurate
+         user rarely corrects, often just accepts or ignores
 ```
